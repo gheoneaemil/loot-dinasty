@@ -121,10 +121,4 @@ contract Lock is Ownable, ReentrancyGuard {
         --session.remaining;
         emit OpenFulfillment(user, packId, pack.prizes, pack.prices, randomness);
     }
-
-    function rtp(
-        uint32 packId
-    ) external view returns(uint8) {
-        
-    }
 }
