@@ -1,0 +1,37 @@
+{
+  "name": "loot-dinasty",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gheoneaemil/loot-dinasty.git"
+  },
+  "keywords": [
+    "Loot",
+    "Kingdom",
+    "Loot",
+    "kingdom",
+    "web3",
+    "crypto",
+    "defi",
+    "crypto",
+    "gambling",
+    "web3",
+    "gambling",
+    "lootboxes"
+  ],
+  "author": "Gheonea \"DIIMIIM\" Emilian",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gheoneaemil/loot-dinasty/issues"
+  },
+  "homepage": "https://github.com/gheoneaemil/loot-dinasty#readme",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
+    "hardhat": "^2.22.18"
+  }
+}
