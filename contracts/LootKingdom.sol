@@ -4,7 +4,7 @@ import "../deps/Ownable.sol";
 import "../deps/ReentrancyGuard.sol";
 import "../deps/IERC20.sol";
 
-contract Lock is Ownable, ReentrancyGuard {
+contract LootKingdom is Ownable, ReentrancyGuard {
     event NewPack(uint32 indexed packId);
     event OpenFulfillment(
         address indexed user, 
