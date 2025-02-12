@@ -5,9 +5,7 @@ import "../deps/ReentrancyGuard.sol";
 import "../deps/IERC20.sol";
 
 contract Lock is Ownable, ReentrancyGuard {
-    event PackEditable(uint32 indexed packId);
     event NewPack(uint32 indexed packId);
-    event HashKeyChangeFailed(address indexed user);
     event OpenFulfillment(
         address indexed user, 
         uint32 indexed packId, 
@@ -28,7 +26,7 @@ contract Lock is Ownable, ReentrancyGuard {
         uint256[] prices;
 
         uint256 price;
-        uint256 allowedEditAccess;
+        bool editable;
     }
 
     struct Session {
@@ -40,8 +38,6 @@ contract Lock is Ownable, ReentrancyGuard {
     mapping(uint256 => Pack) public packs;
     mapping(address => mapping(uint32 => Session)) public userToSession;
 
-    uint256 public editPeriod = 5 days;
-    uint256 public cooldownPeriod = 20 days;
     uint256 public forbiddenHashChangeAccess = 20 minutes;
     address public houseAddress;
 
@@ -59,12 +55,10 @@ contract Lock is Ownable, ReentrancyGuard {
             "Invalid length"
         );
 
-        if (packs[packId].prizes.length > 0) {
-            require(
-                packs[packId].allowedEditAccess >= block.timestamp,
-                "Cannot be edited right now"
-            );
-        }
+        require(
+            packs[packId].prizes.length == 0 || packs[packId].editable,
+            "Cannot be edited right now"
+        );
 
         packs[packId] = pack;
         emit NewPack(packId);
@@ -73,12 +67,7 @@ contract Lock is Ownable, ReentrancyGuard {
     function setAllowedEditAccess(
         uint32 packId
     ) external onlyOwner {
-        require(
-            packs[packId].allowedEditAccess + cooldownPeriod < block.timestamp,
-            "Already available"
-        );
-        packs[packId].allowedEditAccess = block.timestamp + editPeriod;
-        emit PackEditable(packId);
+        packs[packId].editable = !packs[packId].editable;
     }
 
     function open(
@@ -102,8 +91,6 @@ contract Lock is Ownable, ReentrancyGuard {
             if (session.forbiddenHashChangeAccess < block.timestamp) {
                 session.hashkey = hashkey;
                 session.forbiddenHashChangeAccess = block.timestamp + forbiddenHashChangeAccess;
-            } else {
-                emit HashKeyChangeFailed(msg.sender);
             }
         }
         session.remaining += qty;
