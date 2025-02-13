@@ -52,7 +52,7 @@ contract LootKingdom is Ownable, ReentrancyGuard {
     ) external onlyOwner {
         require(
             pack.prizes.length <= 100 && 
-            pack.prizes.length == pack.prices.length,
+            pack.prizes.length == pack.prices.length+1,
             "Invalid length"
         );
 

@@ -5,8 +5,7 @@ import {
 import { expect } from "chai";
 import hre from "hardhat";
 import { getContract, parseEventLogs } from "viem";
-
-const address0x0 = "0x0000000000000000000000000000000000000000";
+import { address0x0 } from "../utils/constants";
 
 describe("LootKingdom", function () {
   async function deployOneYearLockFixture() {
@@ -31,7 +30,7 @@ describe("LootKingdom", function () {
         token: address0x0,
         editable: false,
         prizes: [BigInt(0), BigInt(5), BigInt(100)],
-        prices: [BigInt(1000), BigInt(2000), BigInt(3000)],
+        prices: [BigInt(1000), BigInt(2000)],
         price: BigInt(500)
       }])).to.be.fulfilled;
     });
@@ -69,7 +68,7 @@ describe("LootKingdom", function () {
         token: address0x0,
         editable: false,
         prizes: [BigInt(0), BigInt(5), BigInt(100)],
-        prices: [BigInt(1000), BigInt(2000), BigInt(3000)],
+        prices: [BigInt(1000), BigInt(2000)],
         price: BigInt(500)
       }])).to.be.fulfilled;
 
@@ -77,7 +76,7 @@ describe("LootKingdom", function () {
         token: address0x0,
         editable: false,
         prizes: [BigInt(0), BigInt(5), BigInt(100)],
-        prices: [BigInt(1000), BigInt(2000), BigInt(3000)],
+        prices: [BigInt(1000), BigInt(2000)],
         price: BigInt(500)
       }])).to.be.rejectedWith("Cannot be edited right now");
     });
@@ -89,7 +88,7 @@ describe("LootKingdom", function () {
         token: address0x0,
         editable: false,
         prizes: [BigInt(0), BigInt(5), BigInt(100)],
-        prices: [BigInt(1000), BigInt(2000), BigInt(3000)],
+        prices: [BigInt(1000), BigInt(2000)],
         price: BigInt(500)
       }])).to.be.fulfilled;
 
@@ -103,7 +102,7 @@ describe("LootKingdom", function () {
         token: address0x0,
         editable: false,
         prizes: [BigInt(0), BigInt(5), BigInt(100)],
-        prices: [BigInt(1000), BigInt(2000), BigInt(3000)],
+        prices: [BigInt(1000), BigInt(2000)],
         price: BigInt(500)
       }])).to.be.fulfilled;
     });
@@ -115,7 +114,7 @@ describe("LootKingdom", function () {
         token: address0x0,
         editable: false,
         prizes: [BigInt(0), BigInt(5)],
-        prices: [BigInt(1000), BigInt(2000), BigInt(3000)],
+        prices: [BigInt(1000), BigInt(2000)],
         price: BigInt(500)
       }])).to.be.rejectedWith("Invalid length");
     });
@@ -132,7 +131,7 @@ describe("LootKingdom", function () {
           token: address0x0,
           editable: false,
           prizes: [BigInt(0), BigInt(5), BigInt(10)],
-          prices: [BigInt(1000), BigInt(2000), BigInt(3000)],
+          prices: [BigInt(1000), BigInt(2000)],
           price: BigInt(500)
         }]
       )).to.be.rejectedWith(`OwnableUnauthorizedAccount("${owner}")`);
@@ -148,7 +147,7 @@ describe("LootKingdom", function () {
         token: address0x0,
         editable: false,
         prizes: [BigInt(0), BigInt(5), BigInt(100)],
-        prices: [BigInt(1000), BigInt(2000), BigInt(3000)],
+        prices: [BigInt(1000), BigInt(2000)],
         price: BigInt(500)
       }])).to.be.fulfilled;
   
@@ -172,7 +171,7 @@ describe("LootKingdom", function () {
         token: address0x0,
         editable: false,
         prizes: [BigInt(0), BigInt(5), BigInt(100)],
-        prices: [BigInt(1000), BigInt(2000), BigInt(3000)],
+        prices: [BigInt(1000), BigInt(2000)],
         price: packPrice
       }])).to.be.fulfilled;
   
@@ -199,7 +198,7 @@ describe("LootKingdom", function () {
         token: address0x0,
         editable: false,
         prizes: [BigInt(0), BigInt(5), BigInt(100)],
-        prices: [BigInt(1000), BigInt(2000), BigInt(3000)],
+        prices: [BigInt(1000), BigInt(2000)],
         price: packPrice
       }])).to.be.fulfilled;
   
@@ -236,7 +235,7 @@ describe("LootKingdom", function () {
         token: address0x0,
         editable: false,
         prizes: [BigInt(0), BigInt(5), BigInt(100)],
-        prices: [BigInt(1000), BigInt(2000), BigInt(3000)],
+        prices: [BigInt(1000), BigInt(2000)],
         price: packPrice
       }])).to.be.fulfilled;
   
