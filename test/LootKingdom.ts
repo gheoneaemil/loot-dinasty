@@ -266,5 +266,11 @@ describe("LootKingdom", function () {
       const { LootKingdom } = await loadFixture(deployOneYearLockFixture);
       await expect(LootKingdom.write.setHashkey([0, "test_hash_key"])).to.be.fulfilled;
     });
+
+    it("Should fail setting a hash key twice in a row without waiting for cooldown", async function () {
+      const { LootKingdom } = await loadFixture(deployOneYearLockFixture);
+      await expect(LootKingdom.write.setHashkey([0, "test_hash_key"])).to.be.fulfilled;
+      await expect(LootKingdom.write.setHashkey([0, "test_hash_key"])).to.be.rejected;
+    });
   });
 });
