@@ -4,7 +4,7 @@ import {
 } from "@nomicfoundation/hardhat-toolbox-viem/network-helpers";
 import { expect } from "chai";
 import hre from "hardhat";
-import { getAddress, parseGwei } from "viem";
+import { getContract, parseEventLogs } from "viem";
 
 const address0x0 = "0x0000000000000000000000000000000000000000";
 
@@ -121,87 +121,150 @@ describe("LootKingdom", function () {
     });
 
     it("Should fail if onlyOwner method called by other wallet", async function () {
-      const { LootKingdom, publicClient, anotherAccount } = await loadFixture(deployOneYearLockFixture);
-      const hash = await LootKingdom.write.setPack([0, {
+      const { LootKingdom, anotherAccount } = await loadFixture(deployOneYearLockFixture);
+      const addresses = await anotherAccount.getAddresses();
+      const owner = await LootKingdom.read.owner();
+      expect(owner !== addresses[1]);
+
+      await LootKingdom.write.transferOwnership([addresses[1]]);
+
+      await expect(LootKingdom.write.setPack([0, {
+          token: address0x0,
+          editable: false,
+          prizes: [BigInt(0), BigInt(5), BigInt(10)],
+          prices: [BigInt(1000), BigInt(2000), BigInt(3000)],
+          price: BigInt(500)
+        }]
+      )).to.be.rejectedWith(`OwnableUnauthorizedAccount("${owner}")`);
+    });
+
+    it("Should fail to open due to no funds paid", async function () {
+      const { LootKingdom, anotherAccount } = await loadFixture(deployOneYearLockFixture);
+      const addresses = await anotherAccount.getAddresses();
+      const owner = await LootKingdom.read.owner();
+      expect(owner !== addresses[1]);
+  
+      await expect(LootKingdom.write.setPack([0, {
         token: address0x0,
         editable: false,
-        prizes: [BigInt(0), BigInt(5), BigInt(10)],
+        prizes: [BigInt(0), BigInt(5), BigInt(100)],
         prices: [BigInt(1000), BigInt(2000), BigInt(3000)],
         price: BigInt(500)
-      }]);
-      const ok = await publicClient.waitForTransactionReceipt({ hash });
-
-      const request = await publicClient.prepareTransactionRequest({
-        account: anotherAccount.account,
-        to: LootKingdom.address,
-        value: 1000000000000000000n
-      })
-
-      await publicClient.sendRawTransaction({
-        serializedTransaction 
+      }])).to.be.fulfilled;
+  
+      const contract = getContract({
+        address: LootKingdom.address,
+        abi: LootKingdom.abi,
+        client: anotherAccount,
       });
-      console.log(ok);
+  
+      await expect(contract.write.open([0,1])).to.be.rejectedWith("Insufficient balance");
     });
-  });
-
-  describe("Withdrawals", function () {
-    describe("Validations", function () {
-      it("Should revert with the right error if called too soon", async function () {
-        const { LootKingdom } = await loadFixture(deployOneYearLockFixture);
-
-        await expect(LootKingdom.write.withdraw()).to.be.rejectedWith(
-          "You can't withdraw yet"
-        );
+  
+    it("Should succeed to open lootbox", async function () {
+      const { LootKingdom, anotherAccount } = await loadFixture(deployOneYearLockFixture);
+      const addresses = await anotherAccount.getAddresses();
+      const owner = await LootKingdom.read.owner();
+      expect(owner !== addresses[1]);
+      const packPrice = BigInt(500);
+  
+      await expect(LootKingdom.write.setPack([0, {
+        token: address0x0,
+        editable: false,
+        prizes: [BigInt(0), BigInt(5), BigInt(100)],
+        prices: [BigInt(1000), BigInt(2000), BigInt(3000)],
+        price: packPrice
+      }])).to.be.fulfilled;
+  
+      const contract = getContract({
+        address: LootKingdom.address,
+        abi: LootKingdom.abi,
+        client: anotherAccount,
       });
 
-      it("Should revert with the right error if called from another account", async function () {
-        const { unlockTime, gnosisAccount } = await loadFixture(
-          deployOneYearLockFixture
-        );
+      const packId = 0;
+      const qty = 1;
 
-        // We can increase the time in Hardhat Network
-        await time.increaseTo(unlockTime);
-
-        /*
-        // We retrieve the contract with a different account to send a transaction
-        const lockAsOtherAccount = await hre.viem.getContractAt(
-          "LootKingdom",
-          gnosisAccount.address,
-          { client: { wallet: gnosisAccount } }
-        );
-        await expect(lockAsOtherAccount.write.withdraw()).to.be.rejectedWith(
-          "You aren't the owner"
-        );
-        */
-      });
-
-      it("Shouldn't fail if the unlockTime has arrived and the owner calls it", async function () {
-        const { LootKingdom, unlockTime } = await loadFixture(
-          deployOneYearLockFixture
-        );
-
-        // Transactions are sent using the first signer by default
-        await time.increaseTo(unlockTime);
-
-        await expect(LootKingdom.write.withdraw()).to.be.fulfilled;
-      });
+      await expect(contract.write.open([packId,qty], { value: packPrice })).to.be.fulfilled;
     });
 
-    describe("Events", function () {
-      it("Should emit an event on withdrawals", async function () {
-        const { LootKingdom, unlockTime, lockedAmount, publicClient } =
-          await loadFixture(deployOneYearLockFixture);
-
-        await time.increaseTo(unlockTime);
-
-        const hash = await LootKingdom.write.withdraw();
-        await publicClient.waitForTransactionReceipt({ hash });
-
-        // get the withdrawal events in the latest block
-        const withdrawalEvents = await LootKingdom.getEvents.Withdrawal();
-        expect(withdrawalEvents).to.have.lengthOf(1);
-        //expect(withdrawalEvents[0].args.amount).to.equal(lockedAmount);
+    it("Should succeed to open 10.000x lootboxes", async function () {
+      const { LootKingdom, anotherAccount, publicClient } = await loadFixture(deployOneYearLockFixture);
+      const addresses = await anotherAccount.getAddresses();
+      const owner = await LootKingdom.read.owner();
+      expect(owner !== addresses[1]);
+      const packPrice = BigInt(500);
+  
+      await expect(LootKingdom.write.setPack([0, {
+        token: address0x0,
+        editable: false,
+        prizes: [BigInt(0), BigInt(5), BigInt(100)],
+        prices: [BigInt(1000), BigInt(2000), BigInt(3000)],
+        price: packPrice
+      }])).to.be.fulfilled;
+  
+      const contract = getContract({
+        address: LootKingdom.address,
+        abi: LootKingdom.abi,
+        client: anotherAccount,
       });
+  
+      const qty = 10000;
+      const packId = 0;
+      const txHash = await contract.write.open([packId,qty], { value: packPrice * BigInt(qty) });
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+
+      const logs = parseEventLogs({
+        abi: LootKingdom.abi,
+        eventName: "Open",
+        logs: receipt.logs,
+      });
+
+      expect(logs).to.have.lengthOf(1);
+      expect(logs[0].args.packId).to.equal(packId);
+      expect(logs[0].args.qty).to.equal(qty);
+    });
+
+    it("Should succeed to open 1.000.000x lootboxes", async function () {
+      const { LootKingdom, anotherAccount, publicClient } = await loadFixture(deployOneYearLockFixture);
+      const addresses = await anotherAccount.getAddresses();
+      const owner = await LootKingdom.read.owner();
+      expect(owner !== addresses[1]);
+      const packPrice = BigInt(500);
+  
+      await expect(LootKingdom.write.setPack([0, {
+        token: address0x0,
+        editable: false,
+        prizes: [BigInt(0), BigInt(5), BigInt(100)],
+        prices: [BigInt(1000), BigInt(2000), BigInt(3000)],
+        price: packPrice
+      }])).to.be.fulfilled;
+  
+      const contract = getContract({
+        address: LootKingdom.address,
+        abi: LootKingdom.abi,
+        client: anotherAccount,
+      });
+
+      const qty = 1_000_000;
+      const packId = 0;
+      const txHash = await contract.write.open([packId,qty], { value: packPrice * BigInt(qty) });
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+
+      const logs = parseEventLogs({
+        abi: LootKingdom.abi,
+        eventName: "Open",
+        logs: receipt.logs,
+      });
+
+      expect(logs).to.have.lengthOf(1);
+      expect(logs[0].args.packId).to.equal(packId);
+      expect(logs[0].args.qty).to.equal(qty);
+    });
+
+    it("Should succeed setting a hash key from user side", async function () {
+      const { LootKingdom } = await loadFixture(deployOneYearLockFixture);
+      await expect(LootKingdom.write.setHashkey([0, "test_hash_key"])).to.be.fulfilled;
     });
   });
 });

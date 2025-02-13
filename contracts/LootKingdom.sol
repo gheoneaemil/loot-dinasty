@@ -6,6 +6,7 @@ import "../deps/IERC20.sol";
 
 contract LootKingdom is Ownable, ReentrancyGuard {
     event NewPack(uint32 indexed packId);
+    event Open(uint32 indexed packId, uint32 qty);
     event OpenFulfillment(
         address indexed user, 
         uint32 indexed packId, 
@@ -70,30 +71,28 @@ contract LootKingdom is Ownable, ReentrancyGuard {
         packs[packId].editable = !packs[packId].editable;
     }
 
+    function setHashkey(uint32 packId, string calldata hashkey) external {
+        require(userToSession[msg.sender][packId].forbiddenHashChangeAccess < block.timestamp, "Hashkey cannot be changed yet");
+        userToSession[msg.sender][packId].hashkey = hashkey;
+        userToSession[msg.sender][packId].forbiddenHashChangeAccess = block.timestamp + forbiddenHashChangeAccess;
+    }
+
     function open(
         uint32 packId,
-        uint32 qty, 
-        string calldata hashkey
+        uint32 qty
     ) external payable nonReentrant {
-        Pack memory pack = packs[packId];
-        if (pack.token == address(0)) {
-            require(msg.value >= qty * pack.price, "Insufficient balance");
+        if (packs[packId].token == address(0)) {
+            require(msg.value >= qty * packs[packId].price, "Insufficient balance");
             payable(houseAddress).transfer(msg.value);
         } else {
-            IERC20 token = IERC20(pack.token);
+            IERC20 token = IERC20(packs[packId].token);
             uint256 balance = token.balanceOf(address(this));
-            require(balance >= qty * pack.price, "Insufficient balance");
+            require(balance >= qty * packs[packId].price, "Insufficient balance");
             token.transfer(houseAddress, balance);
         }
 
-        Session memory session = userToSession[msg.sender][packId];
-        if (keccak256(abi.encodePacked(session.hashkey)) != keccak256(abi.encodePacked(hashkey))) {
-            if (session.forbiddenHashChangeAccess < block.timestamp) {
-                session.hashkey = hashkey;
-                session.forbiddenHashChangeAccess = block.timestamp + forbiddenHashChangeAccess;
-            }
-        }
-        session.remaining += qty;
+        userToSession[msg.sender][packId].remaining += qty;
+        emit Open(packId, qty);
     }
 
     function fulfillUserOpen(
@@ -101,11 +100,9 @@ contract LootKingdom is Ownable, ReentrancyGuard {
         address user,
         uint32 packId
     ) external nonReentrant onlyOwner {
-        Session memory session = userToSession[user][packId];
-        require(session.remaining > 0, "No more attempts left");
-        Pack memory pack = packs[packId];
-        uint256 randomness = uint256(keccak256(abi.encodePacked(session.hashkey, hashkey))) % pack.prizes[pack.prizes.length-1];
-        --session.remaining;
-        emit OpenFulfillment(user, packId, pack.prizes, pack.prices, randomness);
+        require(userToSession[user][packId].remaining > 0, "No more attempts left");
+        uint256 randomness = uint256(keccak256(abi.encodePacked(userToSession[user][packId].hashkey, hashkey))) % packs[packId].prizes[packs[packId].prizes.length-1];
+        --userToSession[user][packId].remaining;
+        emit OpenFulfillment(user, packId, packs[packId].prizes, packs[packId].prices, randomness);
     }
 }
