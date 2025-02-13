@@ -25,7 +25,7 @@ const run = async () => {
         token: address0x0,
         editable: false,
         prizes: [BigInt(0), BigInt(5), BigInt(100)],
-        prices: [BigInt(1000), BigInt(2000), BigInt(3000)],
+        prices: [BigInt(1000), BigInt(2000)],
         price: packPrice
     }]);
 
