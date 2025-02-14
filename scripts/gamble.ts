@@ -21,11 +21,33 @@ const initializeContract = async () => {
 const run = async () => {
     const { LootKingdom, anotherAccount, publicClient } = await initializeContract();
     const packPrice = BigInt(500);
+    const prizes = [
+        BigInt(0), BigInt(50), BigInt(110), 
+        BigInt(180), BigInt(260), BigInt(350), 
+        BigInt(450), BigInt(550), BigInt(650), 
+        BigInt(750), BigInt(850), BigInt(950), 
+        BigInt(1050), BigInt(1150), BigInt(1250), 
+        BigInt(1350), BigInt(1450), BigInt(1550), 
+        BigInt(1650), BigInt(1750), BigInt(1850), 
+        BigInt(1950), BigInt(2050), BigInt(2150),
+        BigInt(2350), BigInt(2550), BigInt(3050),
+        BigInt(4050), BigInt(5050), BigInt(7050),
+        BigInt(11050), BigInt(14050), BigInt(15050),
+        BigInt(16050), BigInt(16550), BigInt(17050), 
+        BigInt(18050), BigInt(20050), BigInt(22050),
+        BigInt(24050), BigInt(27050), BigInt(31050), 
+        BigInt(36050), BigInt(56050), BigInt(66050), 
+        BigInt(76050), BigInt(96050), BigInt(126050), 
+        BigInt(156050), BigInt(210000), BigInt(1000000)
+    ];
+    const prices = prizes.map(_ => BigInt(100));
+    prices.pop();
+
     await LootKingdom.write.setPack([0, {
         token: address0x0,
         editable: false,
-        prizes: [BigInt(0), BigInt(5), BigInt(100)],
-        prices: [BigInt(1000), BigInt(2000)],
+        prizes,
+        prices,
         price: packPrice
     }]);
 
