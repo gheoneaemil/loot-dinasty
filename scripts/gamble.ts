@@ -1,10 +1,16 @@
 import hre from "hardhat";
 import { address0x0 } from "../utils/constants";
 import { getContract, parseEventLogs } from "viem";
-import { mkdir } from "fs/promises";
-import { utils, writeFile } from "xlsx";
+import Database from "better-sqlite3";
 
-const workbook = utils.book_new();
+const db = new Database("database.sqlite");
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS randoms (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      value TEXT NOT NULL
+    );
+`);
 
 const initializeContract = async () => {
     const [anotherAccount, gnosisAccount] = await hre.viem.getWalletClients();
@@ -58,7 +64,7 @@ const run = async () => {
     });
 
     const packId = 0;
-    const qty = 1_000_000; //_000;
+    const qty = 1_000_000;
 
     const txHash = await contract.write.open([packId,qty], { value: packPrice * BigInt(qty) });
     const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
@@ -72,12 +78,6 @@ const run = async () => {
     const receivedPackId = logs[0].args.packId;
     const receivedQty = logs[0].args.qty;
 
-    const worksheet = utils.aoa_to_sheet([]);
-    utils.book_append_sheet(workbook, worksheet);
-
-    const filePath = `export/${Date.now()}_export.xls`;
-    writeFile(workbook, filePath, { bookType: "xls" });
-
     let initialHash = receipt.blockHash;
 
     for (let i = 0 ; i < receivedQty ; ++i ) {
@@ -90,8 +90,8 @@ const run = async () => {
             eventName: "OpenFulfillment",
             logs: fullfillmentReceipt.logs,
         });
-        utils.sheet_add_aoa(worksheet, [[fulfillmentLogs[0].args.randomness.toString()]], { origin: -1 });
-        writeFile(workbook, filePath, { bookType: "xls" });
+        const stmt = db.prepare(`INSERT INTO randoms (value) VALUES (?)`);
+        stmt.run(fulfillmentLogs[0].args.randomness.toString());
     }
 }
 

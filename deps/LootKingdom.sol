@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
-import "../deps/Ownable.sol";
-import "../deps/ReentrancyGuard.sol";
-import "../deps/IERC20.sol";
+import "./Ownable.sol";
+import "./ReentrancyGuard.sol";
+import "./IERC20.sol";
 
 contract LootKingdom is Ownable, ReentrancyGuard {
     event NewPack(uint32 indexed packId);

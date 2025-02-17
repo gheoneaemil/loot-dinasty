@@ -5,7 +5,12 @@
   "main": "index.js",
   "scripts": {
     "test": "npx hardhat test",
-    "gamble": "npx hardhat run scripts/gamble.ts"
+    "compile": "npx hardhat compile",
+    "deploy:loot-kingdom:local": "npx hardhat ignition deploy ./ignition/modules/LootKingdom.ts --network localhost",
+    "deploy:arbitrum:sepolia": "npx hardhat ignition deploy ./ignition/modules/LootKingdom.ts --network arbitrumSepolia --deployment-id first-deploy",
+    "start-hardhat-local-network": "npx hardhat node",
+    "gamble": "npx hardhat run scripts/gamble.ts",
+    "gamble:localhost": "npx hardhat run scripts/gamble.ts --network localhost"
   },
   "repository": {
     "type": "git",
@@ -33,9 +38,11 @@
   "homepage": "https://github.com/gheoneaemil/loot-dinasty#readme",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
+    "@types/better-sqlite3": "^7.6.12",
     "hardhat": "^2.22.18"
   },
   "dependencies": {
+    "better-sqlite3": "^11.8.1",
     "xlsx": "^0.18.5"
   }
 }
