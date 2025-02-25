@@ -1,0 +1,123 @@
+{
+	"compiler": {
+		"version": "0.8.19+commit.7dd6d404"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "target",
+						"type": "address"
+					}
+				],
+				"name": "AddressEmptyCode",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "FailedCall",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes[]",
+						"name": "data",
+						"type": "bytes[]"
+					}
+				],
+				"name": "multicall",
+				"outputs": [
+					{
+						"internalType": "bytes[]",
+						"name": "results",
+						"type": "bytes[]"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"details": "Provides a function to batch together multiple calls in a single external call. Consider any assumption about calldata validation performed by the sender may be violated if it's not especially careful about sending transactions invoking {multicall}. For example, a relay address that filters function selectors won't filter calls nested within a {multicall} operation. NOTE: Since 5.0.1 and 4.9.4, this contract identifies non-canonical contexts (i.e. `msg.sender` is not {Context-_msgSender}). If a non-canonical context is identified, the following self `delegatecall` appends the last bytes of `msg.data` to the subcall. This makes it safe to use with {ERC2771Context}. Contexts that don't affect the resolution of {Context-_msgSender} are not propagated to subcalls.",
+			"errors": {
+				"AddressEmptyCode(address)": [
+					{
+						"details": "There's no code at `target` (it is not a contract)."
+					}
+				],
+				"FailedCall()": [
+					{
+						"details": "A call to an address target failed. The target may have reverted."
+					}
+				]
+			},
+			"kind": "dev",
+			"methods": {
+				"multicall(bytes[])": {
+					"custom:oz-upgrades-unsafe-allow-reachable": "delegatecall",
+					"details": "Receives and executes a batch of function calls on this contract."
+				}
+			},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"deps/Multicall.sol": "Multicall"
+		},
+		"evmVersion": "paris",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"deps/Address.sol": {
+			"keccak256": "0x914a3ae0e2b06d0c0ed03292f911c2c6892e661746d9aaa2bdeba4651940bc2f",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://a6b244aa42f3b9cedb87977fb1b1bddd741905a4e785ff96b10a211d58744eb7",
+				"dweb:/ipfs/QmbbJrvBiLebze6hhT3NH25iCXg4PZErUG5Geeb6cTarqw"
+			]
+		},
+		"deps/Context.sol": {
+			"keccak256": "0x7a23f1543270ef457f34f52f8dfae13569c3425245892cb11abef958f16286c1",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8fb48d0348acaaa9019a8a719c973ba149e2e146dece51f907ac4c736e936449",
+				"dweb:/ipfs/QmYewYBYEyBNfZg8JsvzKPp6kV4yQrH6tkAv3rcA9pzgyD"
+			]
+		},
+		"deps/Errors.sol": {
+			"keccak256": "0x6c06820405899bce5b6e54be66fb02bebd8466cc193fc2813a0360b372a55af9",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://bf769959475a1c56b0bd49170affa85ae75234d122eb886389a6efdadcf522e1",
+				"dweb:/ipfs/QmQczXSuHtj6WUMTtByThk1G441muaRGxEGKiJDq1BemEM"
+			]
+		},
+		"deps/Multicall.sol": {
+			"keccak256": "0xbda8f0bffbd304581d12c892a3bfb9783313058b62b2739b8494f4c257acbd4d",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://a315c7ec4bc6a59257f39442a74736014ba13286eb978601ed33e0980b9ac94e",
+				"dweb:/ipfs/QmUnQPtt6LG2mA623diBfUjcmZyKBDj7vJfbznpnwojhqN"
+			]
+		}
+	},
+	"version": 1
+}

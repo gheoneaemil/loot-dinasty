@@ -1,0 +1,441 @@
+{
+	"compiler": {
+		"version": "0.8.19+commit.7dd6d404"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_houseAddress",
+						"type": "address"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"inputs": [],
+				"name": "CurrentlyUnchangeable",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "Forbidden",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "InsufficientBalance",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "InvalidLength",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "NotEditable",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					}
+				],
+				"name": "OwnableInvalidOwner",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "OwnableUnauthorizedAccount",
+				"type": "error"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "uint256[]",
+						"name": "randomness",
+						"type": "uint256[]"
+					}
+				],
+				"name": "OpensValidated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "previousOwner",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "OwnershipTransferred",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "hashkey",
+						"type": "string"
+					},
+					{
+						"internalType": "address[]",
+						"name": "users",
+						"type": "address[]"
+					},
+					{
+						"internalType": "uint32[]",
+						"name": "packIds",
+						"type": "uint32[]"
+					}
+				],
+				"name": "batchValidateOpens",
+				"outputs": [
+					{
+						"internalType": "uint256[]",
+						"name": "randValues",
+						"type": "uint256[]"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "houseAddress",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint32",
+						"name": "packId",
+						"type": "uint32"
+					},
+					{
+						"internalType": "uint32",
+						"name": "qty",
+						"type": "uint32"
+					}
+				],
+				"name": "open",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "owner",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "packs",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "token",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "price",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "editable",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "renounceOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint32",
+						"name": "packId",
+						"type": "uint32"
+					}
+				],
+				"name": "setAllowedEditAccess",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint32",
+						"name": "packId",
+						"type": "uint32"
+					},
+					{
+						"internalType": "string",
+						"name": "hashkey",
+						"type": "string"
+					}
+				],
+				"name": "setHashkey",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint32",
+						"name": "packId",
+						"type": "uint32"
+					},
+					{
+						"components": [
+							{
+								"internalType": "address",
+								"name": "token",
+								"type": "address"
+							},
+							{
+								"internalType": "uint256[]",
+								"name": "prizes",
+								"type": "uint256[]"
+							},
+							{
+								"internalType": "uint256[]",
+								"name": "prices",
+								"type": "uint256[]"
+							},
+							{
+								"internalType": "uint256",
+								"name": "price",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "editable",
+								"type": "bool"
+							}
+						],
+						"internalType": "struct LootKingdom.Pack",
+						"name": "pack",
+						"type": "tuple"
+					}
+				],
+				"name": "setPack",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address[]",
+						"name": "proposedValidators",
+						"type": "address[]"
+					}
+				],
+				"name": "setWhitelist",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "transferOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					},
+					{
+						"internalType": "uint32",
+						"name": "",
+						"type": "uint32"
+					}
+				],
+				"name": "userToSession",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "hashkey",
+						"type": "string"
+					},
+					{
+						"internalType": "uint32",
+						"name": "remaining",
+						"type": "uint32"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"name": "validators",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"errors": {
+				"OwnableInvalidOwner(address)": [
+					{
+						"details": "The owner is not a valid owner account. (eg. `address(0)`)"
+					}
+				],
+				"OwnableUnauthorizedAccount(address)": [
+					{
+						"details": "The caller account is not authorized to perform an operation."
+					}
+				]
+			},
+			"kind": "dev",
+			"methods": {
+				"owner()": {
+					"details": "Returns the address of the current owner."
+				},
+				"renounceOwnership()": {
+					"details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
+				},
+				"transferOwnership(address)": {
+					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+				}
+			},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/LootKingdom.sol": "LootKingdom"
+		},
+		"evmVersion": "paris",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 50000
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/LootKingdom.sol": {
+			"keccak256": "0x55f7add49a1891c48b91c58d052384bac05b58fb514141af5243fa618be417dc",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://aa3c9eb597ae95ec3d318bd4f087e2d7e86e9dfba9682083ef83280f9e523b5d",
+				"dweb:/ipfs/QmdwXSCFdPpYMFzWCxKkrAgGzbKNBEcRsnHvnQjVRvwa9g"
+			]
+		},
+		"deps/Context.sol": {
+			"keccak256": "0x7a23f1543270ef457f34f52f8dfae13569c3425245892cb11abef958f16286c1",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8fb48d0348acaaa9019a8a719c973ba149e2e146dece51f907ac4c736e936449",
+				"dweb:/ipfs/QmYewYBYEyBNfZg8JsvzKPp6kV4yQrH6tkAv3rcA9pzgyD"
+			]
+		},
+		"deps/IERC20.sol": {
+			"keccak256": "0x039eebb0121f9974a91719118c87e2aa732269ed55c116e343970d0f51952dd4",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://fc9136d31ba84ae3b7452b7f20c7dadc5ffd6664c0c005640ce2b7e8c9e15a8f",
+				"dweb:/ipfs/QmWVXKCQYGhwwBNUUrxnGQbd8DfP2X5pk6L27K7EGaUaJg"
+			]
+		},
+		"deps/Ownable.sol": {
+			"keccak256": "0x5436681d41153b4f13c00c58f7ec5531bcaa2fdd9e63ad3b7f40add0ff06181b",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://5e328ea85144d55f73cd98fe94fd1ad9a74abfcfa783ceed7a0a93248f5ac1dd",
+				"dweb:/ipfs/QmemmjhXUotLK1Zr9ohxny9w3KYcffRjxNrx3WA8DKevbi"
+			]
+		}
+	},
+	"version": 1
+}

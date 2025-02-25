@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 import "../deps/Ownable.sol";
-import "../deps/ReentrancyGuard.sol";
 import "../deps/IERC20.sol";
 
-contract LootKingdom is Ownable, ReentrancyGuard {
-    event NewPack(uint32 indexed packId);
-    event Open(uint32 indexed packId, uint32 qty);
-    event OpenFulfillment(
-        address indexed user, 
-        uint32 indexed packId, 
-        uint256[] prizes, 
-        uint256[] prices,
-        uint256 randomness
+error InvalidLength();
+error NotEditable();
+error CurrentlyUnchangeable();
+error InsufficientBalance();
+error Forbidden();
+
+contract LootKingdom is Ownable {
+    event OpensValidated(
+        uint256[] randomness
     );
 
     struct Pack {
@@ -37,6 +36,7 @@ contract LootKingdom is Ownable, ReentrancyGuard {
 
     mapping(uint256 => Pack) public packs;
     mapping(address => mapping(uint32 => Session)) public userToSession;
+    mapping(address => bool) public validators;
 
     address public houseAddress;
 
@@ -48,19 +48,21 @@ contract LootKingdom is Ownable, ReentrancyGuard {
         uint32 packId,
         Pack calldata pack
     ) external onlyOwner {
-        require(
-            pack.prizes.length <= 100 && 
-            pack.prizes.length == pack.prices.length+1,
-            "Invalid length"
-        );
+        if (pack.prizes.length > 100 || pack.prizes.length != pack.prices.length + 1) {
+            revert InvalidLength();
+        }
 
-        require(
-            packs[packId].prizes.length == 0 || packs[packId].editable,
-            "Cannot be edited right now"
-        );
+        if (packs[packId].prizes.length != 0 && !packs[packId].editable) {
+            revert NotEditable();
+        }
 
         packs[packId] = pack;
-        emit NewPack(packId);
+    }
+
+    function setWhitelist(address[] calldata proposedValidators) external onlyOwner {
+        for (uint i; i < proposedValidators.length; ++i) {
+            validators[proposedValidators[i]] = !validators[proposedValidators[i]];
+        }
     }
 
     function setAllowedEditAccess(
@@ -70,36 +72,53 @@ contract LootKingdom is Ownable, ReentrancyGuard {
     }
 
     function setHashkey(uint32 packId, string calldata hashkey) external {
-        require(userToSession[msg.sender][packId].remaining == 0, "Hashkey cannot be changed yet");
+        if (userToSession[msg.sender][packId].remaining != 0) {
+            revert CurrentlyUnchangeable();
+        }
         userToSession[msg.sender][packId].hashkey = hashkey;
     }
 
     function open(
         uint32 packId,
         uint32 qty
-    ) external payable nonReentrant {
+    ) external payable {
         if (packs[packId].token == address(0)) {
-            require(msg.value >= qty * packs[packId].price, "Insufficient balance");
+            if (msg.value < qty * packs[packId].price) {
+                revert InsufficientBalance();
+            }
             payable(houseAddress).transfer(msg.value);
         } else {
             IERC20 token = IERC20(packs[packId].token);
             uint256 balance = token.balanceOf(address(this));
-            require(balance >= qty * packs[packId].price, "Insufficient balance");
+            if (balance < qty * packs[packId].price) {
+                revert InsufficientBalance();
+            }
             token.transfer(houseAddress, balance);
         }
 
         userToSession[msg.sender][packId].remaining += qty;
-        emit Open(packId, qty);
     }
 
-    function fulfillUserOpen(
+    function batchValidateOpens(
         string calldata hashkey,
-        address user,
-        uint32 packId
-    ) external nonReentrant onlyOwner {
-        require(userToSession[user][packId].remaining > 0, "No more attempts left");
-        uint256 randomness = uint256(keccak256(abi.encodePacked(userToSession[user][packId].hashkey, hashkey))) % packs[packId].prizes[packs[packId].prizes.length-1];
-        --userToSession[user][packId].remaining;
-        emit OpenFulfillment(user, packId, packs[packId].prizes, packs[packId].prices, randomness);
+        address[] calldata users,
+        uint32[] calldata packIds
+    ) external returns(uint256[] memory randValues){
+        if (!validators[msg.sender]) {
+            revert Forbidden();
+        }
+        randValues = new uint256[](users.length);
+        for (uint256 i; i < users.length; ++i) {
+            randValues[i] = uint256(
+                keccak256(
+                    abi.encodePacked(
+                        userToSession[users[i]][packIds[i]].hashkey, hashkey
+                    )
+                )
+            ) % packs[packIds[i]].prizes[packs[packIds[i]].prizes.length-1];
+            --userToSession[users[i]][packIds[i]].remaining;
+        }
+        emit OpensValidated(randValues);
     }
+
 }
