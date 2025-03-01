@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
-import "./Ownable.sol";
-import "./IERC20.sol";
+import "../deps/Ownable.sol";
+import "../deps/IERC20.sol";
 
 error InvalidLength();
 error NotEditable();
@@ -11,7 +11,16 @@ error Forbidden();
 
 contract LootKingdom is Ownable {
     event OpensValidated(
-        uint256[] randomness
+        string hashkey,
+        address[] users,
+        uint256[] randomness,
+        uint32[] packIds
+    );
+    event Open(
+        string hashkey,
+        address user,
+        uint32 packId, 
+        uint32 qty
     );
 
     struct Pack {
@@ -97,6 +106,12 @@ contract LootKingdom is Ownable {
         }
 
         userToSession[msg.sender][packId].remaining += qty;
+        emit Open(
+            userToSession[msg.sender][packId].hashkey,
+            msg.sender,
+            packId, 
+            qty
+        );
     }
 
     function batchValidateOpens(
@@ -118,7 +133,7 @@ contract LootKingdom is Ownable {
             ) % packs[packIds[i]].prizes[packs[packIds[i]].prizes.length-1];
             --userToSession[users[i]][packIds[i]].remaining;
         }
-        emit OpensValidated(randValues);
+        emit OpensValidated(hashkey, users, randValues, packIds);
     }
 
 }
