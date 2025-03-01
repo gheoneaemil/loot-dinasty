@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
-import "../deps/Ownable.sol";
-import "../deps/IERC20.sol";
+import "./Ownable.sol";
+import "./IERC20.sol";
 
 error InvalidLength();
 error NotEditable();

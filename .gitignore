@@ -148,3 +148,4 @@ node_modules
 ignition/deployments/chain-31337
 
 export
+deps/artifacts
