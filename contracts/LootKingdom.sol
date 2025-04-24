@@ -2,71 +2,91 @@
 pragma solidity ^0.8.19;
 import "../deps/Ownable.sol";
 
-error NotEditable();
 error Forbidden();
 
 contract LootKingdom is Ownable {
     event OpensValidated(
         bytes32 hashkey,
         uint32[] packIds,
-        uint256[] orderIds,
         uint256[] randoms
     );
 
     struct Pack {
+        string[] ids;
         uint256[] prizes;
         uint256[] prices;
-        bool editable;
     }
 
-    mapping(uint256 => Pack) public packs;
+    mapping(uint256 => Pack) private packs;
     mapping(address => bool) public validators;
 
     address public houseAddress;
 
-    constructor(address _houseAddress) Ownable(msg.sender) {
+    constructor(
+        address _houseAddress
+    ) 
+        Ownable(msg.sender) 
+    {
         houseAddress = _houseAddress;
     }
 
     function setPack(
         uint32 packId,
         Pack calldata pack
-    ) external onlyOwner {
-        if (packs[packId].prizes.length != 0 && !packs[packId].editable) {
-            revert NotEditable();
-        }
-
+    ) 
+        external 
+        onlyOwner 
+    {
         packs[packId] = pack;
     }
 
-    function setWhitelist(address[] calldata proposedValidators) external onlyOwner {
+    function getPack(
+        uint256 packId
+    ) 
+        external 
+        view 
+        returns(
+            string[] memory, 
+            uint256[] memory, 
+            uint256[] memory
+        ) 
+    {
+        return (
+            packs[packId].ids, 
+            packs[packId].prizes, 
+            packs[packId].prices
+        );
+    }
+
+    function setWhitelist(
+        address[] calldata proposedValidators
+    ) 
+        external 
+        onlyOwner 
+    {
         for (uint i; i < proposedValidators.length; ++i) {
             validators[proposedValidators[i]] = !validators[proposedValidators[i]];
         }
     }
 
-    function setAllowedEditAccess(
-        uint32 packId
-    ) external onlyOwner {
-        packs[packId].editable = !packs[packId].editable;
-    }
-
     function batchValidateOpens(
-        bytes32 blockHash,
+        bytes32 blockHash, // next block hash
         uint32[] calldata packIds,
-        uint256[] calldata orderIds
-    ) external {
+        string[] calldata keys // user hashed keys
+    ) 
+        external 
+    {
         if (!validators[msg.sender]) {
             revert Forbidden();
         }
 
-        uint256[] memory randValues = new uint256[](orderIds.length);
-        uint256 rand = uint256(blockHash);
-
-        for (uint256 i; i < orderIds.length; ++i) {
+        uint256[] memory randValues = new uint256[](packIds.length);
+        
+        for (uint256 i; i < packIds.length; ++i) {
+            uint256 rand = uint256(keccak256(abi.encodePacked(blockHash, keys[i])));
             randValues[i] = rand % packs[packIds[i]].prizes[packs[packIds[i]].prizes.length-1];
         }
         
-        emit OpensValidated(blockHash, packIds, orderIds, randValues);
+        emit OpensValidated(blockHash, packIds, randValues);
     }
 }
