@@ -70,9 +70,9 @@ contract LootKingdom is Ownable {
     }
 
     function batchValidateOpens(
-        bytes32 blockHash,
+        bytes32 blockHash, // next block hash
         uint32[] calldata packIds,
-        string[] calldata keys
+        string[] calldata keys // user hashed keys
     ) 
         external 
     {
@@ -81,9 +81,9 @@ contract LootKingdom is Ownable {
         }
 
         uint256[] memory randValues = new uint256[](packIds.length);
-        uint256 rand = uint256(blockHash);
-
+        
         for (uint256 i; i < packIds.length; ++i) {
+            uint256 rand = uint256(keccak256(abi.encodePacked(blockHash, keys[i])));
             randValues[i] = rand % packs[packIds[i]].prizes[packs[packIds[i]].prizes.length-1];
         }
         
