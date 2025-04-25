@@ -6,9 +6,11 @@ error Forbidden();
 
 contract LootKingdom is Ownable {
     event OpensValidated(
-        bytes32 hashkey,
-        uint32[] packIds,
-        uint256[] randoms
+        string hashkey,
+        uint256[] userIds,
+        uint256[] packIds,
+        uint256[] randoms,
+        string[] itemIds
     );
 
     struct Pack {
@@ -70,8 +72,9 @@ contract LootKingdom is Ownable {
     }
 
     function batchValidateOpens(
-        bytes32 blockHash, // next block hash
-        uint32[] calldata packIds,
+        uint256[] calldata userIds,
+        uint256[] calldata packIds,
+        string calldata blockHash, // next block hash
         string[] calldata keys // user hashed keys
     ) 
         external 
@@ -81,12 +84,19 @@ contract LootKingdom is Ownable {
         }
 
         uint256[] memory randValues = new uint256[](packIds.length);
-        
+        string[] memory itemIds = new string[](packIds.length);
+
         for (uint256 i; i < packIds.length; ++i) {
             uint256 rand = uint256(keccak256(abi.encodePacked(blockHash, keys[i])));
             randValues[i] = rand % packs[packIds[i]].prizes[packs[packIds[i]].prizes.length-1];
+            for (uint256 j; j < packs[packIds[i]].prizes.length - 1; ++j) {
+                if (randValues[i] > packs[packIds[i]].prizes[j] && randValues[i] <= packs[packIds[i]].prizes[j+1]) {
+                    itemIds[i] = packs[packIds[i]].ids[j];
+                    break;
+                }
+            }
         }
         
-        emit OpensValidated(blockHash, packIds, randValues);
+        emit OpensValidated(blockHash, userIds, packIds, randValues, itemIds);
     }
 }
