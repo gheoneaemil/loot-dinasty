@@ -12,6 +12,10 @@ contract LootKingdom is Ownable {
         uint256[] randoms,
         string[] itemIds
     );
+    event NewPack(
+        uint32 indexed packId,
+        Pack pack 
+    );
 
     struct Pack {
         string[] ids;
@@ -40,6 +44,7 @@ contract LootKingdom is Ownable {
         onlyOwner 
     {
         packs[packId] = pack;
+        emit NewPack(packId, packs[packId]);
     }
 
     function getPack(
