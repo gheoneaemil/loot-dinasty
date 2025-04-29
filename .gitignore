@@ -151,3 +151,4 @@ export
 deps/artifacts
 .states
 **/artifacts
+contracts/artifacts/*
