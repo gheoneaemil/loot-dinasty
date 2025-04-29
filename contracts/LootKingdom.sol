@@ -88,10 +88,11 @@ contract LootKingdom is Ownable {
 
         for (uint256 i; i < packIds.length; ++i) {
             uint256 rand = uint256(keccak256(abi.encodePacked(blockHash, keys[i])));
-            randValues[i] = rand % packs[packIds[i]].chances[packs[packIds[i]].chances.length-1];
-            for (uint256 j; j < packs[packIds[i]].chances.length - 1; ++j) {
-                if (randValues[i] > packs[packIds[i]].chances[j] && randValues[i] <= packs[packIds[i]].chances[j+1]) {
-                    itemIds[i] = packs[packIds[i]].ids[j];
+            Pack memory pack = packs[packIds[i]];
+            randValues[i] = rand % pack.chances[pack.chances.length-1];
+            for (uint256 j; j < pack.chances.length - 1; ++j) {
+                if (randValues[i] > pack.chances[j] && randValues[i] <= pack.chances[j+1]) {
+                    itemIds[i] = pack.ids[j];
                     break;
                 }
             }
