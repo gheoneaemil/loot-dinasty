@@ -10,21 +10,24 @@ contract LootKingdom is Ownable {
         uint256[] userIds,
         uint256[] packIds,
         uint256[] randoms,
-        string[] itemIds
+        uint256[] itemIds
     );
     event NewPack(
         uint32 indexed packId,
-        Pack pack 
+        uint256[] ids,
+        uint256[] chances,
+        uint256[] prices
     );
 
     struct Pack {
-        string[] ids;
+        uint256[] ids;
         uint256[] chances;
         uint256[] prices;
     }
 
     mapping(uint256 => Pack) private packs;
     mapping(address => bool) public validators;
+    mapping(uint256 => string) private keys;
 
     address public houseAddress;
 
@@ -44,7 +47,7 @@ contract LootKingdom is Ownable {
         onlyOwner 
     {
         packs[packId] = pack;
-        emit NewPack(packId, packs[packId]);
+        emit NewPack(packId, pack.ids, pack.chances, pack.prices);
     }
 
     function getPack(
@@ -53,7 +56,7 @@ contract LootKingdom is Ownable {
         external 
         view 
         returns(
-            string[] memory, 
+            uint256[] memory, 
             uint256[] memory, 
             uint256[] memory
         ) 
@@ -76,11 +79,22 @@ contract LootKingdom is Ownable {
         }
     }
 
+    function setUserKeys(
+        uint256[] calldata userIds,
+        string[] calldata updatedKeys
+    )
+        external
+        onlyOwner
+    {
+        for (uint256 i; i < userIds.length; ++i) {
+            keys[userIds[i]] = updatedKeys[i];
+        }
+    }
+
     function batchValidateOpens(
         uint256[] calldata userIds,
         uint256[] calldata packIds,
-        string calldata blockHash, // next block hash
-        string[] calldata keys // user hashed keys
+        string calldata blockHash // next block hash
     ) 
         external 
     {
@@ -89,10 +103,10 @@ contract LootKingdom is Ownable {
         }
 
         uint256[] memory randValues = new uint256[](packIds.length);
-        string[] memory itemIds = new string[](packIds.length);
+        uint256[] memory itemIds = new uint256[](packIds.length);
 
         for (uint256 i; i < packIds.length; ++i) {
-            uint256 rand = uint256(keccak256(abi.encodePacked(blockHash, keys[i])));
+            uint256 rand = uint256(keccak256(abi.encodePacked(blockHash, keys[userIds[i]])));
             Pack memory pack = packs[packIds[i]];
             randValues[i] = rand % pack.chances[pack.chances.length-1];
             for (uint256 j; j < pack.chances.length - 1; ++j) {
