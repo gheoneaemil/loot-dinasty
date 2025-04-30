@@ -14,6 +14,7 @@ contract LootKingdom is Ownable {
     );
     event NewPack(
         uint32 indexed packId,
+        uint32 price,
         uint256[] ids,
         uint256[] chances,
         uint256[] prices
@@ -28,6 +29,7 @@ contract LootKingdom is Ownable {
     mapping(uint256 => Pack) private packs;
     mapping(address => bool) public validators;
     mapping(uint256 => string) private keys;
+    mapping(uint256 => uint32) public packPrices;
 
     address public houseAddress;
 
@@ -41,13 +43,15 @@ contract LootKingdom is Ownable {
 
     function setPack(
         uint32 packId,
-        Pack calldata pack
+        Pack calldata pack,
+        uint32 price
     ) 
         external 
         onlyOwner 
     {
         packs[packId] = pack;
-        emit NewPack(packId, pack.ids, pack.chances, pack.prices);
+        packPrices[packId] = price;
+        emit NewPack(packId, price, pack.ids, pack.chances, pack.prices);
     }
 
     function getPack(
