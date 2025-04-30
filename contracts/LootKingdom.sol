@@ -6,19 +6,30 @@ error Forbidden();
 
 contract LootKingdom is Ownable {
     event OpensValidated(
-        bytes32 hashkey,
-        uint32[] packIds,
-        uint256[] randoms
+        string hashkey,
+        uint256[] userIds,
+        uint256[] packIds,
+        uint256[] randoms,
+        uint256[] itemIds
+    );
+    event NewPack(
+        uint32 indexed packId,
+        uint32 price,
+        uint256[] ids,
+        uint256[] chances,
+        uint256[] prices
     );
 
     struct Pack {
-        string[] ids;
-        uint256[] prizes;
+        uint256[] ids;
+        uint256[] chances;
         uint256[] prices;
     }
 
     mapping(uint256 => Pack) private packs;
     mapping(address => bool) public validators;
+    mapping(uint256 => string) private keys;
+    mapping(uint256 => uint32) public packPrices;
 
     address public houseAddress;
 
@@ -32,12 +43,15 @@ contract LootKingdom is Ownable {
 
     function setPack(
         uint32 packId,
-        Pack calldata pack
+        Pack calldata pack,
+        uint32 price
     ) 
         external 
         onlyOwner 
     {
         packs[packId] = pack;
+        packPrices[packId] = price;
+        emit NewPack(packId, price, pack.ids, pack.chances, pack.prices);
     }
 
     function getPack(
@@ -46,14 +60,14 @@ contract LootKingdom is Ownable {
         external 
         view 
         returns(
-            string[] memory, 
+            uint256[] memory, 
             uint256[] memory, 
             uint256[] memory
         ) 
     {
         return (
             packs[packId].ids, 
-            packs[packId].prizes, 
+            packs[packId].chances, 
             packs[packId].prices
         );
     }
@@ -69,10 +83,22 @@ contract LootKingdom is Ownable {
         }
     }
 
+    function setUserKeys(
+        uint256[] calldata userIds,
+        string[] calldata updatedKeys
+    )
+        external
+        onlyOwner
+    {
+        for (uint256 i; i < userIds.length; ++i) {
+            keys[userIds[i]] = updatedKeys[i];
+        }
+    }
+
     function batchValidateOpens(
-        bytes32 blockHash, // next block hash
-        uint32[] calldata packIds,
-        string[] calldata keys // user hashed keys
+        uint256[] calldata userIds,
+        uint256[] calldata packIds,
+        string calldata blockHash // next block hash
     ) 
         external 
     {
@@ -81,12 +107,20 @@ contract LootKingdom is Ownable {
         }
 
         uint256[] memory randValues = new uint256[](packIds.length);
-        
+        uint256[] memory itemIds = new uint256[](packIds.length);
+
         for (uint256 i; i < packIds.length; ++i) {
-            uint256 rand = uint256(keccak256(abi.encodePacked(blockHash, keys[i])));
-            randValues[i] = rand % packs[packIds[i]].prizes[packs[packIds[i]].prizes.length-1];
+            uint256 rand = uint256(keccak256(abi.encodePacked(blockHash, keys[userIds[i]])));
+            Pack memory pack = packs[packIds[i]];
+            randValues[i] = rand % pack.chances[pack.chances.length-1];
+            for (uint256 j; j < pack.chances.length - 1; ++j) {
+                if (randValues[i] > pack.chances[j] && randValues[i] <= pack.chances[j+1]) {
+                    itemIds[i] = pack.ids[j];
+                    break;
+                }
+            }
         }
         
-        emit OpensValidated(blockHash, packIds, randValues);
+        emit OpensValidated(blockHash, userIds, packIds, randValues, itemIds);
     }
 }
