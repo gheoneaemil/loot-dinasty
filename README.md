@@ -1,2 +1,2 @@
-# loot-dinasty
-##### https://sepolia.arbiscan.io/address/0x016921DC98d0be53A84d03e8AC304853Fa9F89D1
+# loot-dinasty >> deployed on alpha dune network
+##### 0xc7273C398aBA174082685EE843F40eCF9ef410c9
