@@ -3,26 +3,36 @@ pragma solidity ^0.8.19;
 import "./Ownable.sol";
 
 error Forbidden();
+error NoWonItemFound();
 
 contract LootKingdom is Ownable {
-    event OpensValidated(
-        string hashkey,
-        uint256[] userIds,
-        uint256[] packIds,
-        uint256[] randoms,
-        uint256[] itemIds
-    );
-
+    event UsersKeysUpdated(uint256[] userIds, string[] updatedKeys);
+    event NewOpening(uint256 indexed id, Opening opening);
     struct Pack {
+        string name;
         uint256[] ids;
         uint256[] chances;
-        uint256[] prices;
+        uint256[] prices; // in USD cents
+        uint256 price; // in USD cents
     }
 
-    mapping(uint256 => Pack) private packs;
+    struct Opening {
+        uint256 userId;
+        uint256 randomness;
+        uint256[] ids;
+        uint256[] chances;
+        uint256[] prices; // in USD cents
+        uint256 price; // in USD cents
+        uint256 itemWon;
+        string key;
+        string hash;
+    }
+
+    uint256 id;
+    mapping(uint256 => Pack) public packs;
     mapping(address => bool) public validators;
-    mapping(uint256 => string) private keys;
-    mapping(uint256 => uint32) public packPrices;
+    mapping(uint256 => string) public userIdToKey;
+    mapping(uint256 => Opening) public openings;
 
     address public houseAddress;
 
@@ -35,18 +45,16 @@ contract LootKingdom is Ownable {
     }
 
     function setPack(
-        uint32 packId,
-        Pack calldata pack,
-        uint32 price
+        uint256 packId,
+        Pack calldata pack
     ) 
         external 
         onlyOwner 
     {
         packs[packId] = pack;
-        packPrices[packId] = price;
     }
 
-    function getPack(
+    function getPackArrays(
         uint256 packId
     ) 
         external 
@@ -61,6 +69,24 @@ contract LootKingdom is Ownable {
             packs[packId].ids, 
             packs[packId].chances, 
             packs[packId].prices
+        );
+    }
+
+    function getOpeningArrays(
+        uint256 openingId
+    ) 
+        external 
+        view 
+        returns(
+            uint256[] memory, 
+            uint256[] memory, 
+            uint256[] memory
+        ) 
+    {
+        return (
+            openings[openingId].ids, 
+            openings[openingId].chances, 
+            openings[openingId].prices
         );
     }
 
@@ -83,8 +109,37 @@ contract LootKingdom is Ownable {
         onlyOwner
     {
         for (uint256 i; i < userIds.length; ++i) {
-            keys[userIds[i]] = updatedKeys[i];
+            userIdToKey[userIds[i]] = updatedKeys[i];
         }
+        emit UsersKeysUpdated(userIds, updatedKeys);
+    }
+
+    function getRandomness(
+        string memory userKey,
+        string calldata serverKey
+    ) 
+        public 
+        pure 
+        returns (uint256) 
+    {
+        return uint256(keccak256(abi.encodePacked(serverKey, userKey)));
+    }
+
+    function getItemWon(
+        Pack memory pack, 
+        uint256 chanceValue
+    ) 
+        public 
+        pure 
+        returns (uint256) 
+    {
+        for (uint256 j; j < pack.chances.length - 1; ++j) {
+            if (chanceValue > pack.chances[j] && chanceValue <= pack.chances[j+1]) {
+                return pack.ids[j];
+            }
+        }
+        
+        revert NoWonItemFound();
     }
 
     function batchValidateOpens(
@@ -98,21 +153,32 @@ contract LootKingdom is Ownable {
             revert Forbidden();
         }
 
-        uint256[] memory randValues = new uint256[](packIds.length);
-        uint256[] memory itemIds = new uint256[](packIds.length);
-
         for (uint256 i; i < packIds.length; ++i) {
-            uint256 rand = uint256(keccak256(abi.encodePacked(blockHash, keys[userIds[i]])));
+            uint256 rand = getRandomness(userIdToKey[userIds[i]], blockHash);
             Pack memory pack = packs[packIds[i]];
-            randValues[i] = rand % pack.chances[pack.chances.length-1];
-            for (uint256 j; j < pack.chances.length - 1; ++j) {
-                if (randValues[i] > pack.chances[j] && randValues[i] <= pack.chances[j+1]) {
-                    itemIds[i] = pack.ids[j];
-                    break;
-                }
-            }
+            uint256 chanceValue = rand % pack.chances[pack.chances.length-1];
+            uint256 itemWon = getItemWon(pack, chanceValue);
+            _handleOpeningCreation(pack, userIds[i], rand, itemWon, blockHash);
         }
-        
-        emit OpensValidated(blockHash, userIds, packIds, randValues, itemIds);
+    }
+
+
+    function _handleOpeningCreation(
+        Pack memory pack, 
+        uint256 userId, 
+        uint256 rand, 
+        uint256 itemWon,
+        string calldata blockHash // next block hash
+    ) private {
+        openings[id].ids = pack.ids;
+        openings[id].chances = pack.chances;
+        openings[id].prices = pack.prices;
+        openings[id].userId = userId;
+        openings[id].randomness = rand;
+        openings[id].price = pack.price;
+        openings[id].itemWon = itemWon;
+        openings[id].hash = blockHash;
+        openings[id].key = userIdToKey[userId];
+        emit NewOpening(id, openings[id++]);
     }
 }
