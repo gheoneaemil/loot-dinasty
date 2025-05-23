@@ -18,6 +18,7 @@ contract LootKingdom is Ownable {
 
     struct Opening {
         uint256 userId;
+        uint256 packId;
         uint256 randomness;
         uint256[] ids;
         uint256[] chances;
@@ -158,19 +159,21 @@ contract LootKingdom is Ownable {
             Pack memory pack = packs[packIds[i]];
             uint256 chanceValue = rand % pack.chances[pack.chances.length-1];
             uint256 itemWon = getItemWon(pack, chanceValue);
-            _handleOpeningCreation(pack, userIds[i], rand, itemWon, blockHash);
+            _handleOpeningCreation(pack, packIds[i], userIds[i], rand, itemWon, blockHash);
         }
     }
 
 
     function _handleOpeningCreation(
-        Pack memory pack, 
+        Pack memory pack,
+        uint256 packId,
         uint256 userId, 
         uint256 rand, 
         uint256 itemWon,
         string calldata blockHash // next block hash
     ) private {
         openings[id].ids = pack.ids;
+        openings[id].packId = packId;
         openings[id].chances = pack.chances;
         openings[id].prices = pack.prices;
         openings[id].userId = userId;
