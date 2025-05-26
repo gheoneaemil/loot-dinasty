@@ -146,7 +146,7 @@ contract LootKingdom is Ownable {
     function batchValidateOpens(
         uint256[] calldata userIds,
         uint256[] calldata packIds,
-        string calldata blockHash // next block hash
+        string[] calldata blocksHash
     ) 
         external 
     {
@@ -155,11 +155,11 @@ contract LootKingdom is Ownable {
         }
 
         for (uint256 i; i < packIds.length; ++i) {
-            uint256 rand = getRandomness(userIdToKey[userIds[i]], blockHash);
+            uint256 rand = getRandomness(userIdToKey[userIds[i]], blocksHash[i]);
             Pack memory pack = packs[packIds[i]];
             uint256 chanceValue = rand % pack.chances[pack.chances.length-1];
             uint256 itemWon = getItemWon(pack, chanceValue);
-            _handleOpeningCreation(pack, packIds[i], userIds[i], rand, itemWon, blockHash);
+            _handleOpeningCreation(pack, packIds[i], userIds[i], rand, itemWon, blocksHash[i]);
         }
     }
 
