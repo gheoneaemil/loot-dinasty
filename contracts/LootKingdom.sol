@@ -8,6 +8,7 @@ error NoWonItemFound();
 contract LootKingdom is Ownable {
     event UsersKeysUpdated(uint256[] userIds, string[] updatedKeys);
     event NewOpening(uint256 indexed id, Opening opening);
+    event NewVirtualOpening(uint256 indexed id, Opening opening);
     struct Pack {
         string name;
         uint256[] ids;
@@ -27,6 +28,7 @@ contract LootKingdom is Ownable {
         uint256 itemWon;
         string key;
         string hash;
+        bool isVirtual;
     }
 
     uint256 public id;
@@ -143,6 +145,26 @@ contract LootKingdom is Ownable {
         revert NoWonItemFound();
     }
 
+    function batchValidateVirtualOpens(
+        uint256[] calldata userIds,
+        uint256[] calldata packIds,
+        string[] calldata blocksHash
+    ) 
+        external 
+    {
+        if (!validators[msg.sender]) {
+            revert Forbidden();
+        }
+
+        for (uint256 i; i < packIds.length; ++i) {
+            uint256 rand = getRandomness(userIdToKey[userIds[i]], blocksHash[i]);
+            Pack memory pack = packs[packIds[i]];
+            uint256 chanceValue = rand % pack.chances[pack.chances.length-1];
+            uint256 itemWon = getItemWon(pack, chanceValue);
+            _handleOpeningCreation(pack, packIds[i], userIds[i], rand, itemWon, blocksHash[i], true);
+        }
+    }
+
     function batchValidateOpens(
         uint256[] calldata userIds,
         uint256[] calldata packIds,
@@ -159,7 +181,7 @@ contract LootKingdom is Ownable {
             Pack memory pack = packs[packIds[i]];
             uint256 chanceValue = rand % pack.chances[pack.chances.length-1];
             uint256 itemWon = getItemWon(pack, chanceValue);
-            _handleOpeningCreation(pack, packIds[i], userIds[i], rand, itemWon, blocksHash[i]);
+            _handleOpeningCreation(pack, packIds[i], userIds[i], rand, itemWon, blocksHash[i], false);
         }
     }
 
@@ -170,7 +192,8 @@ contract LootKingdom is Ownable {
         uint256 userId, 
         uint256 rand, 
         uint256 itemWon,
-        string calldata blockHash // next block hash
+        string calldata blockHash, // next block hash
+        bool isVirtual
     ) private {
         openings[id].ids = pack.ids;
         openings[id].packId = packId;
@@ -182,6 +205,11 @@ contract LootKingdom is Ownable {
         openings[id].itemWon = itemWon;
         openings[id].hash = blockHash;
         openings[id].key = userIdToKey[userId];
-        emit NewOpening(id, openings[id++]);
+        openings[id].isVirtual = isVirtual;
+        if (isVirtual) {
+            emit NewVirtualOpening(id, openings[id++]);
+        } else {
+            emit NewOpening(id, openings[id++]);
+        }
     }
 }
