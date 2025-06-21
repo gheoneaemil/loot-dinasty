@@ -109,8 +109,11 @@ contract LootKingdom is Ownable {
         string[] calldata updatedKeys
     )
         external
-        onlyOwner
     {
+        if (!validators[msg.sender]) {
+            revert Forbidden();
+        }
+
         for (uint256 i; i < userIds.length; ++i) {
             userIdToKey[userIds[i]] = updatedKeys[i];
         }
