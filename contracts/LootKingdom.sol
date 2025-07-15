@@ -6,7 +6,7 @@ error Forbidden();
 error NoWonItemFound();
 
 contract LootKingdom is Ownable {
-    event UsersKeysUpdated(uint256[] userIds, string[] updatedKeys);
+    event UserKeyUpdated(uint256 indexed userId, string updatedKey);
     event NewOpening(uint256 indexed id, Opening opening);
     event NewVirtualOpening(uint256 indexed id, Opening opening);
     struct Pack {
@@ -17,28 +17,21 @@ contract LootKingdom is Ownable {
         uint256 price; // in USD cents
     }
 
-    struct OpenOperation {
-        uint256[] userIds;
-        uint256[] packIds;
-        bytes32[] blocksHash;
-        bytes16[] batchValidateReference;
-    }
-
     struct Opening {
         uint256 userId;
         uint256 packId;
         uint256 randomness;
-        uint256[] ids;
-        uint256[] chances;
-        uint256[] prices; // in USD cents
-        uint256 price; // in USD cents
-        uint256 itemWon;
+        uint256 prize;
         string key;
         bytes32 hash;
+        bytes32 battleId; // if part of battle then it must be > 0
+        bytes32 batchValidateReference;
+        bytes8 battlemode;
         bool isVirtual;
     }
 
     uint256 public id;
+    uint256 public battleId = 1;
     mapping(uint256 => Pack) public packs;
     mapping(address => bool) public validators;
     mapping(uint256 => string) public userIdToKey;
@@ -101,9 +94,9 @@ contract LootKingdom is Ownable {
         ) 
     {
         return (
-            openings[openingId].ids, 
-            openings[openingId].chances, 
-            openings[openingId].prices
+            packs[openings[openingId].packId].ids, 
+            packs[openings[openingId].packId].chances, 
+            packs[openings[openingId].packId].prices
         );
     }
 
@@ -127,8 +120,8 @@ contract LootKingdom is Ownable {
     {
         for (uint256 i; i < userIds.length; ++i) {
             userIdToKey[userIds[i]] = updatedKeys[i];
+            emit UserKeyUpdated(userIds[i], updatedKeys[i]);
         }
-        emit UsersKeysUpdated(userIds, updatedKeys);
     }
 
     function getRandomness(
@@ -159,139 +152,110 @@ contract LootKingdom is Ownable {
         revert NoWonItemFound();
     }
 
-    function batchValidateBattles(
-        OpenOperation[] calldata operations
+    function batchValidateBattleOpens(
+        bytes32[] calldata battleIds,
+        bytes8[] calldata battlemodes,
+        uint256[] calldata userIds,
+        uint256[] calldata packIds,
+        bytes32[] calldata blocksHash
     ) 
         validator 
         external 
     {
-        for (uint256 j; j < operations.length; ++j) {
-            uint256[] memory scores = new uint256[](operations[j].packIds.length);
-            for (uint256 i; i < operations[j].packIds.length; ++i) {
-                uint256 rand = getRandomness(userIdToKey[operations[j].userIds[i]], operations[j].blocksHash[i]);
-                Pack memory pack = packs[operations[j].packIds[i]];
-                uint256 chanceValue = rand % pack.chances[pack.chances.length-1];
-                uint256 itemIdWon = getItemWon(pack, chanceValue);
-                scores[i] = packs[operations[j].packIds[i]].prices[itemIdWon];
-            }
-
-            uint256 winnerId = _findTopWinner(packs[operations[j].packIds[i]].prices);            
-
-            _handleOpeningCreation(
-                pack, 
-                operations[j].packIds[i], 
-                operations[j].userIds[i], 
-                rand, 
-                operations[j].packIds[itemIdWon], 
-                operations[j].blocksHash[i], 
-                true
-            );
+        for (uint256 i; i < packIds.length; ++i) {
+            uint256 rand = getRandomness(userIdToKey[userIds[i]], blocksHash[i]);
+            Pack memory pack = packs[packIds[i]];
+            uint256 chanceValue = rand % pack.chances[pack.chances.length-1];
+            uint256 itemIdWon = getItemWon(pack, chanceValue);
+            openings[id].packId = packIds[i];
+            openings[id].userId = userIds[i];
+            openings[id].randomness = rand;
+            openings[id].prize = packs[packIds[i]].prices[itemIdWon];
+            openings[id].hash = blocksHash[i];
+            openings[id].key = userIdToKey[userIds[i]];
+            openings[id].batchValidateReference = battleIds[i];
+            openings[id].battlemode = battlemodes[i];
+            emit NewOpening(id, openings[id++]);
         }
     }
 
     function batchValidateVirtualOpens(
-        OpenOperation calldata operation
+        uint256[] calldata userIds,
+        uint256[] calldata packIds,
+        bytes32[] calldata blocksHash,
+        bytes32[] calldata batchValidateReference
     ) 
         validator 
         external 
     {
-        for (uint256 i; i < operation.packIds.length; ++i) {
-            uint256 rand = getRandomness(userIdToKey[operation.userIds[i]], operation.blocksHash[i]);
-            Pack memory pack = packs[operation.packIds[i]];
-            uint256 chanceValue = rand % pack.chances[pack.chances.length-1];
-            uint256 itemIdWon = getItemWon(pack, chanceValue);
-            _handleOpeningCreation(
-                pack, 
-                operation.packIds[i], 
-                operation.userIds[i], 
-                rand, 
-                operation.packIds[itemIdWon], 
-                operation.blocksHash[i], 
-                true
-            );
-        }
+        _handleOpenings(
+            userIds, 
+            packIds, 
+            blocksHash, 
+            batchValidateReference, 
+            true
+        );
     }
 
     function batchValidateOpens(
-        OpenOperation calldata operation
+        uint256[] calldata userIds,
+        uint256[] calldata packIds,
+        bytes32[] calldata blocksHash,
+        bytes32[] calldata batchValidateReference
     ) 
         validator 
         external 
     {
-        for (uint256 i; i < operation.packIds.length; ++i) {
-            uint256 rand = getRandomness(userIdToKey[operation.userIds[i]], operation.blocksHash[i]);
-            Pack memory pack = packs[operation.packIds[i]];
+        _handleOpenings(
+            userIds, 
+            packIds, 
+            blocksHash, 
+            batchValidateReference, 
+            false
+        );
+    }
+
+    function _handleOpenings(
+        uint256[] calldata userIds,
+        uint256[] calldata packIds,
+        bytes32[] calldata blocksHash,
+        bytes32[] calldata batchValidateReference,
+        bool isVirtual
+    ) private {
+        for (uint256 i; i < packIds.length; ++i) {
+            uint256 rand = getRandomness(userIdToKey[userIds[i]], blocksHash[i]);
+            Pack memory pack = packs[packIds[i]];
             uint256 chanceValue = rand % pack.chances[pack.chances.length-1];
             uint256 itemIdWon = getItemWon(pack, chanceValue);
             _handleOpeningCreation(
-                pack, 
-                operation.packIds[i], 
-                operation.userIds[i], 
+                packIds[i], 
+                userIds[i], 
                 rand, 
-                operation.packIds[itemIdWon], 
-                operation.blocksHash[i], 
-                false
+                pack.prices[itemIdWon], 
+                blocksHash[i],
+                batchValidateReference[i],
+                isVirtual
             );
-        }
-    }
-
-    function _findTopWinner(
-        uint256[] memory userIds,
-        uint256[] memory prizes
-    ) private pure returns (uint256 topUserId) {
-        uint256[] memory uniqueUserIds = new uint256[](userIds.length);
-        uint256[] memory totals = new uint256[](userIds.length);
-        uint256 uniqueCount;
-
-        for (uint256 i; i < userIds.length; i++) {
-            uint256 userId = userIds[i];
-            uint256 prize = prizes[i];
-
-            bool found = false;
-            for (uint256 j; j < uniqueCount; j++) {
-                if (uniqueUserIds[j] == userId) {
-                    totals[j] += prize;
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found) {
-                uniqueUserIds[uniqueCount] = userId;
-                totals[uniqueCount] = prize;
-                uniqueCount++;
-            }
-        }
-
-        uint256 topTotal;
-        for (uint256 i; i < uniqueCount; i++) {
-            if (totals[i] > topTotal) {
-                topTotal = totals[i];
-                topUserId = uniqueUserIds[i];
-            }
         }
     }
 
     function _handleOpeningCreation(
-        Pack memory pack,
         uint256 packId,
         uint256 userId, 
         uint256 rand, 
-        uint256 itemWon,
+        uint256 prize,
         bytes32 blockHash, // next block hash
+        bytes32 batchValidateReference, // purchase UUID
         bool isVirtual
     ) private {
-        openings[id].ids = pack.ids;
         openings[id].packId = packId;
-        openings[id].chances = pack.chances;
-        openings[id].prices = pack.prices;
         openings[id].userId = userId;
         openings[id].randomness = rand;
-        openings[id].price = pack.price;
-        openings[id].itemWon = itemWon;
+        openings[id].prize = prize;
         openings[id].hash = blockHash;
         openings[id].key = userIdToKey[userId];
         openings[id].isVirtual = isVirtual;
+        openings[id].batchValidateReference = batchValidateReference;
         if (isVirtual) {
             emit NewVirtualOpening(id, openings[id++]);
         } else {
