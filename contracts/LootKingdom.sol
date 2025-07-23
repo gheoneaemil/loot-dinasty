@@ -31,7 +31,6 @@ contract LootKingdom is Ownable {
     }
 
     uint256 public id;
-    uint256 public battleId = 1;
     mapping(uint256 => Pack) public packs;
     mapping(address => bool) public validators;
     mapping(uint256 => string) public userIdToKey;
