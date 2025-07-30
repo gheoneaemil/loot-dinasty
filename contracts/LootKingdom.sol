@@ -21,12 +21,12 @@ contract LootKingdom is Ownable {
         uint256 userId;
         uint256 packId;
         uint256 randomness;
+        uint256 itemIdWon;
         uint256 prize;
         string key;
-        bytes32 hash;
-        bytes32 purchaseReference;
+        string hash;
+        string purchaseReference;
         bytes8 battlemode;
-        bool isVirtual;
     }
 
     uint256 public id;
@@ -124,7 +124,7 @@ contract LootKingdom is Ownable {
 
     function getRandomness(
         string memory userKey,
-        bytes32 serverKey
+        string calldata serverKey
     ) 
         public 
         pure 
@@ -151,66 +151,50 @@ contract LootKingdom is Ownable {
     }
 
     function batchValidateBattleOpens(
-        bytes32[] calldata purchaseReferences,
-        bytes8[] calldata battlemodes,
         uint256[] calldata userIds,
         uint256[] calldata packIds,
-        bytes32[] calldata blocksHash
+        string[] calldata blocksHash,
+        string[] calldata purchaseReferences,
+        bytes8[] calldata battlemodes
     ) 
         validator 
         external 
     {
-        for (uint256 i; i < packIds.length; ++i) {
-            uint256 rand = getRandomness(userIdToKey[userIds[i]], blocksHash[i]);
-            Pack memory pack = packs[packIds[i]];
-            uint256 chanceValue = rand % pack.chances[pack.chances.length-1];
-            uint256 itemIdWon = getItemWon(pack, chanceValue);
-            openings[id].battlemode = battlemodes[i];
-            _handleOpeningCreation(
-                packIds[i], 
-                userIds[i], 
-                rand, 
-                pack.prices[itemIdWon], 
-                blocksHash[i],
-                purchaseReferences[i],
-                false
-            );
-        }
+        _handleBattleOpenings(
+            userIds,
+            packIds,
+            battlemodes,
+            blocksHash,
+            purchaseReferences, 
+            false
+        );
     }
 
     function batchValidateVirtualBattleOpens(
-        bytes32[] calldata purchaseReferences,
-        bytes8[] calldata battlemodes,
         uint256[] calldata userIds,
         uint256[] calldata packIds,
-        bytes32[] calldata blocksHash
+        string[] calldata blocksHash,
+        string[] calldata purchaseReferences,
+        bytes8[] calldata battlemodes
     ) 
         validator 
         external 
     {
-        for (uint256 i; i < packIds.length; ++i) {
-            uint256 rand = getRandomness(userIdToKey[userIds[i]], blocksHash[i]);
-            Pack memory pack = packs[packIds[i]];
-            uint256 chanceValue = rand % pack.chances[pack.chances.length-1];
-            uint256 itemIdWon = getItemWon(pack, chanceValue);
-            openings[id].battlemode = battlemodes[i];
-            _handleOpeningCreation(
-                packIds[i], 
-                userIds[i], 
-                rand, 
-                pack.prices[itemIdWon], 
-                blocksHash[i],
-                purchaseReferences[i],
-                true
-            );
-        }
+        _handleBattleOpenings(
+            userIds,
+            packIds,
+            battlemodes,
+            blocksHash,
+            purchaseReferences, 
+            true
+        );
     }
 
     function batchValidateVirtualOpens(
         uint256[] calldata userIds,
         uint256[] calldata packIds,
-        bytes32[] calldata blocksHash,
-        bytes32[] calldata purchaseReferences
+        string[] calldata blocksHash,
+        string[] calldata purchaseReferences
     ) 
         validator 
         external 
@@ -227,8 +211,8 @@ contract LootKingdom is Ownable {
     function batchValidateOpens(
         uint256[] calldata userIds,
         uint256[] calldata packIds,
-        bytes32[] calldata blocksHash,
-        bytes32[] calldata purchaseReferences
+        string[] calldata blocksHash,
+        string[] calldata purchaseReferences
     ) 
         validator 
         external 
@@ -245,8 +229,8 @@ contract LootKingdom is Ownable {
     function _handleOpenings(
         uint256[] calldata userIds,
         uint256[] calldata packIds,
-        bytes32[] calldata blocksHash,
-        bytes32[] calldata purchaseReferences,
+        string[] calldata blocksHash,
+        string[] calldata purchaseReferences,
         bool isVirtual
     ) private {
         for (uint256 i; i < packIds.length; ++i) {
@@ -259,6 +243,34 @@ contract LootKingdom is Ownable {
                 userIds[i], 
                 rand, 
                 pack.prices[itemIdWon], 
+                pack.ids[itemIdWon],
+                blocksHash[i],
+                purchaseReferences[i],
+                isVirtual
+            );
+        }
+    }
+
+    function _handleBattleOpenings(
+        uint256[] calldata userIds,
+        uint256[] calldata packIds,
+        bytes8[] calldata battlemodes,
+        string[] calldata blocksHash,
+        string[] calldata purchaseReferences,
+        bool isVirtual
+    ) private {
+        for (uint256 i; i < packIds.length; ++i) {
+            uint256 rand = getRandomness(userIdToKey[userIds[i]], blocksHash[i]);
+            Pack memory pack = packs[packIds[i]];
+            uint256 chanceValue = rand % pack.chances[pack.chances.length-1];
+            uint256 itemIdWon = getItemWon(pack, chanceValue);
+            _handleBattleOpeningCreation(
+                packIds[i], 
+                userIds[i], 
+                rand, 
+                pack.prices[itemIdWon], 
+                pack.ids[itemIdWon],
+                battlemodes[i],
                 blocksHash[i],
                 purchaseReferences[i],
                 isVirtual
@@ -271,8 +283,9 @@ contract LootKingdom is Ownable {
         uint256 userId, 
         uint256 rand, 
         uint256 prize,
-        bytes32 blockHash, // next block hash
-        bytes32 purchaseReference, // purchase UUID
+        uint256 itemIdWon,
+        string calldata blockHash, // next block hash
+        string calldata purchaseReference, // purchase UUID
         bool isVirtual
     ) private {
         openings[id].packId = packId;
@@ -281,8 +294,35 @@ contract LootKingdom is Ownable {
         openings[id].prize = prize;
         openings[id].hash = blockHash;
         openings[id].key = userIdToKey[userId];
-        openings[id].isVirtual = isVirtual;
         openings[id].purchaseReference = purchaseReference;
+        openings[id].itemIdWon = itemIdWon;
+        if (isVirtual) {
+            emit NewVirtualOpening(id, openings[id++]);
+        } else {
+            emit NewOpening(id, openings[id++]);
+        }
+    }
+
+    function _handleBattleOpeningCreation(
+        uint256 packId,
+        uint256 userId, 
+        uint256 rand, 
+        uint256 prize,
+        uint256 itemIdWon,
+        bytes8 battlemode,
+        string calldata blockHash, // next block hash
+        string calldata purchaseReference, // purchase UUID
+        bool isVirtual
+    ) private {
+        openings[id].packId = packId;
+        openings[id].userId = userId;
+        openings[id].randomness = rand;
+        openings[id].prize = prize;
+        openings[id].hash = blockHash;
+        openings[id].key = userIdToKey[userId];
+        openings[id].battlemode = battlemode;
+        openings[id].purchaseReference = purchaseReference;
+        openings[id].itemIdWon = itemIdWon;
         if (isVirtual) {
             emit NewVirtualOpening(id, openings[id++]);
         } else {

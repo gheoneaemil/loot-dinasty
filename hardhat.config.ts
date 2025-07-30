@@ -8,7 +8,12 @@ const config = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 50_000
+        runs: 50_000,
+            details: {
+                yulDetails: {
+                    optimizerSteps: "u",
+                },
+            },
       },
       viaIR: true,
     },
