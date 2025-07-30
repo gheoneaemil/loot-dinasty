@@ -3,11 +3,8 @@
 
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
-const LootKingdomModule = buildModule("LootKingdomModule", (m) => {
-  const deployer = m.getAccount(0);
-  console.log(deployer);
-  const lock = m.contract("LootKingdom", [deployer]);
-
+const LootKingdomModule = buildModule("LootKingdom", (m) => {
+  const lock = m.contract("LootKingdom", [String(process.env.ADMIN_ADDRESS)]);
   return { lock };
 });
 

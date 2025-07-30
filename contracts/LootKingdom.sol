@@ -25,7 +25,7 @@ contract LootKingdom is Ownable {
         string key;
         bytes32 hash;
         bytes32 battleId; // if part of battle then it must be > 0
-        bytes32 batchValidateReference;
+        bytes32 purchaseReference;
         bytes8 battlemode;
         bool isVirtual;
     }
@@ -172,7 +172,7 @@ contract LootKingdom is Ownable {
             openings[id].prize = packs[packIds[i]].prices[itemIdWon];
             openings[id].hash = blocksHash[i];
             openings[id].key = userIdToKey[userIds[i]];
-            openings[id].batchValidateReference = battleIds[i];
+            openings[id].purchaseReference = battleIds[i];
             openings[id].battlemode = battlemodes[i];
             emit NewOpening(id, openings[id++]);
         }
@@ -182,7 +182,7 @@ contract LootKingdom is Ownable {
         uint256[] calldata userIds,
         uint256[] calldata packIds,
         bytes32[] calldata blocksHash,
-        bytes32[] calldata batchValidateReference
+        bytes32[] calldata purchaseReference
     ) 
         validator 
         external 
@@ -191,7 +191,7 @@ contract LootKingdom is Ownable {
             userIds, 
             packIds, 
             blocksHash, 
-            batchValidateReference, 
+            purchaseReference, 
             true
         );
     }
@@ -200,7 +200,7 @@ contract LootKingdom is Ownable {
         uint256[] calldata userIds,
         uint256[] calldata packIds,
         bytes32[] calldata blocksHash,
-        bytes32[] calldata batchValidateReference
+        bytes32[] calldata purchaseReference
     ) 
         validator 
         external 
@@ -209,7 +209,7 @@ contract LootKingdom is Ownable {
             userIds, 
             packIds, 
             blocksHash, 
-            batchValidateReference, 
+            purchaseReference, 
             false
         );
     }
@@ -218,7 +218,7 @@ contract LootKingdom is Ownable {
         uint256[] calldata userIds,
         uint256[] calldata packIds,
         bytes32[] calldata blocksHash,
-        bytes32[] calldata batchValidateReference,
+        bytes32[] calldata purchaseReference,
         bool isVirtual
     ) private {
         for (uint256 i; i < packIds.length; ++i) {
@@ -232,7 +232,7 @@ contract LootKingdom is Ownable {
                 rand, 
                 pack.prices[itemIdWon], 
                 blocksHash[i],
-                batchValidateReference[i],
+                purchaseReference[i],
                 isVirtual
             );
         }
@@ -244,7 +244,7 @@ contract LootKingdom is Ownable {
         uint256 rand, 
         uint256 prize,
         bytes32 blockHash, // next block hash
-        bytes32 batchValidateReference, // purchase UUID
+        bytes32 purchaseReference, // purchase UUID
         bool isVirtual
     ) private {
         openings[id].packId = packId;
@@ -254,7 +254,7 @@ contract LootKingdom is Ownable {
         openings[id].hash = blockHash;
         openings[id].key = userIdToKey[userId];
         openings[id].isVirtual = isVirtual;
-        openings[id].batchValidateReference = batchValidateReference;
+        openings[id].purchaseReference = purchaseReference;
         if (isVirtual) {
             emit NewVirtualOpening(id, openings[id++]);
         } else {
