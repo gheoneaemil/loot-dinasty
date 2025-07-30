@@ -6,8 +6,7 @@
   "scripts": {
     "test": "npx hardhat test",
     "compile": "npx hardhat compile",
-    "deploy:loot-kingdom:local": "npx hardhat ignition deploy ./ignition/modules/LootKingdom.ts --network localhost",
-    "deploy:arbitrum:sepolia": "npx hardhat ignition deploy ./ignition/modules/LootKingdom.ts --network arbitrumSepolia --deployment-id first-deploy",
+    "deploy:loot-kingdom:testnet": "npx hardhat ignition deploy ./ignition/modules/LootKingdom.ts --network alphaDuneTestnet",
     "start-hardhat-local-network": "npx hardhat node",
     "gamble": "npx hardhat run scripts/gamble.ts",
     "gamble:localhost": "npx hardhat run scripts/gamble.ts --network localhost"

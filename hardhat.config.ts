@@ -20,7 +20,7 @@ const config = {
       hardhat: {
           chainId: 31337,
       },
-      alphaDune: {
+      alphaDuneTestnet: {
         chainId: 1555201,
         url: String(process.env.RPC_URL),
         accounts: process.env.PRIVATE_KEY ? [String(process.env.PRIVATE_KEY)] : []
