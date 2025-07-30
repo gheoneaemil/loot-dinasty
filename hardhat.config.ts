@@ -10,6 +10,7 @@ const config = {
         enabled: true,
         runs: 50_000
       },
+      viaIR: true,
     },
   },
   typechain: {

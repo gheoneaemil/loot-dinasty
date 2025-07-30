@@ -24,7 +24,6 @@ contract LootKingdom is Ownable {
         uint256 prize;
         string key;
         bytes32 hash;
-        bytes32 battleId; // if part of battle then it must be > 0
         bytes32 purchaseReference;
         bytes8 battlemode;
         bool isVirtual;
@@ -152,7 +151,7 @@ contract LootKingdom is Ownable {
     }
 
     function batchValidateBattleOpens(
-        bytes32[] calldata battleIds,
+        bytes32[] calldata purchaseReferences,
         bytes8[] calldata battlemodes,
         uint256[] calldata userIds,
         uint256[] calldata packIds,
@@ -166,15 +165,44 @@ contract LootKingdom is Ownable {
             Pack memory pack = packs[packIds[i]];
             uint256 chanceValue = rand % pack.chances[pack.chances.length-1];
             uint256 itemIdWon = getItemWon(pack, chanceValue);
-            openings[id].packId = packIds[i];
-            openings[id].userId = userIds[i];
-            openings[id].randomness = rand;
-            openings[id].prize = packs[packIds[i]].prices[itemIdWon];
-            openings[id].hash = blocksHash[i];
-            openings[id].key = userIdToKey[userIds[i]];
-            openings[id].purchaseReference = battleIds[i];
             openings[id].battlemode = battlemodes[i];
-            emit NewOpening(id, openings[id++]);
+            _handleOpeningCreation(
+                packIds[i], 
+                userIds[i], 
+                rand, 
+                pack.prices[itemIdWon], 
+                blocksHash[i],
+                purchaseReferences[i],
+                false
+            );
+        }
+    }
+
+    function batchValidateVirtualBattleOpens(
+        bytes32[] calldata purchaseReferences,
+        bytes8[] calldata battlemodes,
+        uint256[] calldata userIds,
+        uint256[] calldata packIds,
+        bytes32[] calldata blocksHash
+    ) 
+        validator 
+        external 
+    {
+        for (uint256 i; i < packIds.length; ++i) {
+            uint256 rand = getRandomness(userIdToKey[userIds[i]], blocksHash[i]);
+            Pack memory pack = packs[packIds[i]];
+            uint256 chanceValue = rand % pack.chances[pack.chances.length-1];
+            uint256 itemIdWon = getItemWon(pack, chanceValue);
+            openings[id].battlemode = battlemodes[i];
+            _handleOpeningCreation(
+                packIds[i], 
+                userIds[i], 
+                rand, 
+                pack.prices[itemIdWon], 
+                blocksHash[i],
+                purchaseReferences[i],
+                true
+            );
         }
     }
 
@@ -182,7 +210,7 @@ contract LootKingdom is Ownable {
         uint256[] calldata userIds,
         uint256[] calldata packIds,
         bytes32[] calldata blocksHash,
-        bytes32[] calldata purchaseReference
+        bytes32[] calldata purchaseReferences
     ) 
         validator 
         external 
@@ -191,7 +219,7 @@ contract LootKingdom is Ownable {
             userIds, 
             packIds, 
             blocksHash, 
-            purchaseReference, 
+            purchaseReferences, 
             true
         );
     }
@@ -200,7 +228,7 @@ contract LootKingdom is Ownable {
         uint256[] calldata userIds,
         uint256[] calldata packIds,
         bytes32[] calldata blocksHash,
-        bytes32[] calldata purchaseReference
+        bytes32[] calldata purchaseReferences
     ) 
         validator 
         external 
@@ -209,7 +237,7 @@ contract LootKingdom is Ownable {
             userIds, 
             packIds, 
             blocksHash, 
-            purchaseReference, 
+            purchaseReferences, 
             false
         );
     }
@@ -218,7 +246,7 @@ contract LootKingdom is Ownable {
         uint256[] calldata userIds,
         uint256[] calldata packIds,
         bytes32[] calldata blocksHash,
-        bytes32[] calldata purchaseReference,
+        bytes32[] calldata purchaseReferences,
         bool isVirtual
     ) private {
         for (uint256 i; i < packIds.length; ++i) {
@@ -232,7 +260,7 @@ contract LootKingdom is Ownable {
                 rand, 
                 pack.prices[itemIdWon], 
                 blocksHash[i],
-                purchaseReference[i],
+                purchaseReferences[i],
                 isVirtual
             );
         }
