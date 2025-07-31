@@ -5,9 +5,8 @@ import "../Ownable.sol";
 error Forbidden();
 error NoWonItemFound();
 
-contract LootKingdom is Ownable {
+contract DataIndex is Ownable {
     event UserKeyUpdated(uint256 indexed userId, string updatedKey);
-    event NewOpening(uint256 indexed id, Opening opening);
     struct Pack {
         string name;
         uint256[] ids;
@@ -16,35 +15,24 @@ contract LootKingdom is Ownable {
         uint256 price; // in USD cents
     }
 
-    struct Opening {
-        uint256 userId;
-        uint256 packId;
-        uint256 randomness;
-        uint256 itemIdWon;
-        uint256 prize;
-        string key;
-        string hash;
-        string purchaseReference;
-        bytes8 battlemode;
-    }
-
-    uint256 public id;
     mapping(uint256 => Pack) public packs;
     mapping(address => bool) public validators;
     mapping(uint256 => string) public userIdToKey;
-    mapping(uint256 => Opening) public openings;
 
     address public validatorsManagerAddress;
     address public packManagerAddress;
+    address public methodsAddress;
 
     constructor(
         address _validatorsManagerAddress,
-        address _packManagerAddress
+        address _packManagerAddress,
+        address _methodsAddress
     ) 
         Ownable(msg.sender) 
     {
         validatorsManagerAddress = _validatorsManagerAddress;
         packManagerAddress = _packManagerAddress;
+        methodsAddress = _methodsAddress;
     }
 
     modifier validator {
@@ -52,75 +40,6 @@ contract LootKingdom is Ownable {
             revert Forbidden();
         }
         _;
-    }
-
-    function setConfig(
-        address _validatorsManagerAddress,
-        address _packManagerAddress
-    ) 
-        external 
-        onlyOwner 
-    {
-        validatorsManagerAddress = _validatorsManagerAddress;
-        packManagerAddress = _packManagerAddress;
-    }
-
-    function setPack(
-        uint256 packId,
-        Pack calldata pack
-    ) 
-        external 
-    {
-        if (msg.sender != packManagerAddress) {
-            revert Forbidden();
-        }
-
-        packs[packId] = pack;
-    }
-
-    function getPackArrays(
-        uint256 packId
-    ) 
-        external 
-        view 
-        returns(
-            uint256[] memory, 
-            uint256[] memory, 
-            uint256[] memory
-        ) 
-    {
-        return (
-            packs[packId].ids, 
-            packs[packId].chances, 
-            packs[packId].prices
-        );
-    }
-
-    function setWhitelist(
-        address[] calldata proposedValidators
-    ) 
-        external 
-    {
-        if (msg.sender != validatorsManagerAddress) {
-            revert Forbidden();
-        }
-
-        for (uint i; i < proposedValidators.length; ++i) {
-            validators[proposedValidators[i]] = !validators[proposedValidators[i]];
-        }
-    }
-
-    function setUserKeys(
-        uint256[] calldata userIds,
-        string[] calldata updatedKeys
-    )
-        validator 
-        external 
-    {
-        for (uint256 i; i < userIds.length; ++i) {
-            userIdToKey[userIds[i]] = updatedKeys[i];
-            emit UserKeyUpdated(userIds[i], updatedKeys[i]);
-        }
     }
 
     function getRandomness(
@@ -139,7 +58,7 @@ contract LootKingdom is Ownable {
         uint256 chanceValue
     ) 
         public 
-        pure 
+        view 
         returns (uint256) 
     {
         for (uint256 j; j < packs[packId].chances.length - 1; ++j) {
@@ -151,23 +70,29 @@ contract LootKingdom is Ownable {
         revert NoWonItemFound();
     }
 
-    function _handleOpeningCreation(
-        uint256 packId,
-        uint256 userId, 
-        uint256 rand, 
-        uint256 prize,
-        uint256 itemIdWon,
-        string calldata blockHash, // next block hash
-        string calldata purchaseReference // purchase UUID
-    ) private {
-        openings[id].packId = packId;
-        openings[id].userId = userId;
-        openings[id].randomness = rand;
-        openings[id].prize = prize;
-        openings[id].hash = blockHash;
-        openings[id].key = userIdToKey[userId];
-        openings[id].purchaseReference = purchaseReference;
-        openings[id].itemIdWon = itemIdWon;
-        emit NewOpening(id, openings[id++]);
+    function isValidator(address sender) 
+        external 
+        view 
+        returns(bool) 
+    {
+        return validators[sender];
+    }
+
+    function getPackArrays(
+        uint256 packId
+    ) 
+        external 
+        view 
+        returns(
+            uint256[] memory, 
+            uint256[] memory, 
+            uint256[] memory
+        ) 
+    {
+        return (
+            packs[packId].ids, 
+            packs[packId].chances, 
+            packs[packId].prices
+        );
     }
 }
