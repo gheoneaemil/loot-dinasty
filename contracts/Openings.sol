@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
+import "./Validators.sol";
+import "./UserKeys.sol";
 import "./Ownable.sol";
 
-error Forbidden();
 error NoWonItemFound();
 
-contract LootKingdom is Ownable {
-    event UserKeyUpdated(uint256 indexed userId, string updatedKey);
+contract Openings is Ownable {
     event NewOpening(uint256 indexed id, Opening opening);
     struct Pack {
         string name;
@@ -25,27 +25,29 @@ contract LootKingdom is Ownable {
         string key;
         string hash;
         string purchaseReference;
-        bytes8 battlemode;
     }
 
     uint256 public id;
     mapping(uint256 => Pack) public packs;
-    mapping(address => bool) public validators;
-    mapping(uint256 => string) public userIdToKey;
     mapping(uint256 => Opening) public openings;
-
-    address public houseAddress;
+    address public validatorsAddress;
+    address public whitelistManagerAddress;
+    address public userKeysManagerAddress;
 
     constructor(
-        address _houseAddress
+        address _validatorsAddress,
+        address _userKeysManagerAddress,
+        address _whitelistManagerAddress
     ) 
         Ownable(msg.sender) 
     {
-        houseAddress = _houseAddress;
+        validatorsAddress = _validatorsAddress;
+        whitelistManagerAddress = _whitelistManagerAddress;
+        userKeysManagerAddress = _userKeysManagerAddress;
     }
 
     modifier validator {
-        if (!validators[msg.sender]) {
+        if (!Validators(validatorsAddress).validators(msg.sender)) {
             revert Forbidden();
         }
         _;
@@ -97,30 +99,6 @@ contract LootKingdom is Ownable {
         );
     }
 
-    function setWhitelist(
-        address[] calldata proposedValidators
-    ) 
-        external 
-        onlyOwner 
-    {
-        for (uint i; i < proposedValidators.length; ++i) {
-            validators[proposedValidators[i]] = !validators[proposedValidators[i]];
-        }
-    }
-
-    function setUserKeys(
-        uint256[] calldata userIds,
-        string[] calldata updatedKeys
-    )
-        validator 
-        external 
-    {
-        for (uint256 i; i < userIds.length; ++i) {
-            userIdToKey[userIds[i]] = updatedKeys[i];
-            emit UserKeyUpdated(userIds[i], updatedKeys[i]);
-        }
-    }
-
     function getRandomness(
         string memory userKey,
         string calldata serverKey
@@ -149,25 +127,6 @@ contract LootKingdom is Ownable {
         revert NoWonItemFound();
     }
 
-    function batchValidateBattleOpens(
-        uint256[] calldata userIds,
-        uint256[] calldata packIds,
-        string[] calldata blocksHash,
-        string[] calldata purchaseReferences,
-        bytes8[] calldata battlemodes
-    ) 
-        validator 
-        external 
-    {
-        _handleBattleOpenings(
-            userIds,
-            packIds,
-            battlemodes,
-            blocksHash,
-            purchaseReferences
-        );
-    }
-
     function batchValidateOpens(
         uint256[] calldata userIds,
         uint256[] calldata packIds,
@@ -191,8 +150,9 @@ contract LootKingdom is Ownable {
         string[] calldata blocksHash,
         string[] calldata purchaseReferences
     ) private {
+        UserKeys userKeys = UserKeys(userKeysManagerAddress);
         for (uint256 i; i < packIds.length; ++i) {
-            uint256 rand = getRandomness(userIdToKey[userIds[i]], blocksHash[i]);
+            uint256 rand = getRandomness(userKeys.userIdToKey(userIds[i]), blocksHash[i]);
             Pack memory pack = packs[packIds[i]];
             uint256 chanceValue = rand % pack.chances[pack.chances.length-1];
             uint256 itemIdWon = getItemWon(pack, chanceValue);
@@ -205,32 +165,6 @@ contract LootKingdom is Ownable {
                 blocksHash[i],
                 purchaseReferences[i]
             );
-        }
-    }
-
-    function _handleBattleOpenings(
-        uint256[] calldata userIds,
-        uint256[] calldata packIds,
-        bytes8[] calldata battlemodes,
-        string[] calldata blocksHash,
-        string[] calldata purchaseReferences
-    ) private {
-        for (uint256 i; i < packIds.length; ++i) {
-            uint256 rand = getRandomness(userIdToKey[userIds[i]], blocksHash[i]);
-            Pack memory pack = packs[packIds[i]];
-            uint256 chanceValue = rand % pack.chances[pack.chances.length-1];
-            uint256 itemIdWon = getItemWon(pack, chanceValue);
-            uint256 userId = userIds[i];
-            openings[id].packId = packIds[i];
-            openings[id].userId = userId;
-            openings[id].randomness = rand;
-            openings[id].prize = pack.prices[itemIdWon];
-            openings[id].hash = blocksHash[i];
-            openings[id].key = userIdToKey[userId];
-            openings[id].battlemode = battlemodes[i];
-            openings[id].purchaseReference = purchaseReferences[i];
-            openings[id].itemIdWon = itemIdWon;
-            emit NewOpening(id, openings[id++]);
         }
     }
 
@@ -248,7 +182,7 @@ contract LootKingdom is Ownable {
         openings[id].randomness = rand;
         openings[id].prize = prize;
         openings[id].hash = blockHash;
-        openings[id].key = userIdToKey[userId];
+        openings[id].key = UserKeys(userKeysManagerAddress).userIdToKey(userId);
         openings[id].purchaseReference = purchaseReference;
         openings[id].itemIdWon = itemIdWon;
         emit NewOpening(id, openings[id++]);
