@@ -3,9 +3,13 @@
 
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
-const LootKingdomModule = buildModule("LootKingdom", (m) => {
-  const lock = m.contract("LootKingdom", [String(process.env.ADMIN_ADDRESS)]);
-  return { lock };
+const real = "LootKingdom";
+const virtual = "VirtualLootKingdom";
+const LootKingdomModule = buildModule(real, (m) => {
+  const realContract = m.contract(real, [String(process.env.ADMIN_ADDRESS)]);
+  const virtualContract = m.contract(virtual, [String(process.env.ADMIN_ADDRESS)]);
+
+  return { realContract, virtualContract };
 });
 
-export default LootKingdomModule;
+export default LootKingdomModule

@@ -9,13 +9,7 @@ const config = {
       optimizer: {
         enabled: true,
         runs: 50_000,
-            details: {
-                yulDetails: {
-                    optimizerSteps: "u",
-                },
-            },
       },
-      viaIR: true,
     },
   },
   typechain: {
@@ -33,10 +27,10 @@ const config = {
       }
   },
   etherscan: {
-      apiKey: process.env.ETHERSCAN_API_KEY || ""
+    apiKey: process.env.ETHERSCAN_API_KEY || ""
   }, 
   sourcify: {
-      enabled: true
+    enabled: true
   },
   ignition: {
     defaultConfirmations: 1,

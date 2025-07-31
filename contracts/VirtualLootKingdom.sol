@@ -5,7 +5,7 @@ import "./Ownable.sol";
 error Forbidden();
 error NoWonItemFound();
 
-contract LootKingdom is Ownable {
+contract VirtualLootKingdom is Ownable {
     event UserKeyUpdated(uint256 indexed userId, string updatedKey);
     event NewOpening(uint256 indexed id, Opening opening);
     struct Pack {
