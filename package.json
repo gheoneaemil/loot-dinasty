@@ -6,7 +6,9 @@
   "scripts": {
     "test": "npx hardhat test",
     "compile": "npx hardhat compile",
-    "deploy:loot-kingdom:testnet": "npx hardhat ignition deploy ./ignition/modules/LootKingdom.ts --network alphaDuneTestnet",
+    "deploy:loot-dynasty:testnet": "npx hardhat ignition deploy ./ignition/modules/ValidatorsMethods.ts --network alphaDuneTestnet && sleep 1 && npx hardhat ignition deploy ./ignition/modules/Validators.ts --network alphaDuneTestnet && sleep 1 && npx hardhat ignition deploy ./ignition/modules/UserKeysMethods.ts --network alphaDuneTestnet && sleep 1 && npx hardhat ignition deploy ./ignition/modules/UserKeys.ts --network alphaDuneTestnet && sleep 1 && npx hardhat ignition deploy ./ignition/modules/LootDynastyMethods.ts --network alphaDuneTestnet && sleep 1 && npx hardhat ignition deploy ./ignition/modules/LootDynasty.ts --network alphaDuneTestnet && sleep 1 && npx hardhat ignition deploy ./ignition/modules/LootDynastyOpeningsMethods.ts --network alphaDuneTestnet && sleep 1 && npx hardhat ignition deploy ./ignition/modules/LootDynastyOpenings.ts --network alphaDuneTestnet && sleep 1 && npx hardhat ignition deploy ./ignition/modules/LootDynastyBattlesMethods.ts --network alphaDuneTestnet && sleep 1 && npx hardhat ignition deploy ./ignition/modules/LootDynastyBattles.ts --network alphaDuneTestnet",
+    "deploy:loot-dynasty:testnet:validators:methods": "npx hardhat ignition deploy ./ignition/modules/ValidatorsMethods.ts --network alphaDuneTestnet",
+    "deploy:loot-dynasty": "npx hardhat ignition deploy ./ignition/modules/LootDynasty.ts",
     "start-hardhat-local-network": "npx hardhat node",
     "gamble": "npx hardhat run scripts/gamble.ts",
     "gamble:localhost": "npx hardhat run scripts/gamble.ts --network localhost"
@@ -36,8 +38,18 @@
   },
   "homepage": "https://github.com/gheoneaemil/loot-dinasty#readme",
   "devDependencies": {
+    "@nomicfoundation/hardhat-ignition": "^0.15.13",
+    "@nomicfoundation/hardhat-ignition-viem": "^0.15.13",
+    "@nomicfoundation/hardhat-network-helpers": "^1.1.0",
     "@nomicfoundation/hardhat-toolbox": "^6.1.0",
-    "@types/better-sqlite3": "^7.6.12"
+    "@nomicfoundation/hardhat-verify": "^2.1.0",
+    "@nomicfoundation/hardhat-viem": "^2.1.0",
+    "@nomicfoundation/ignition-core": "^0.15.13",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/chai-as-promised": "^7.1.8",
+    "hardhat-gas-reporter": "^2.3.0",
+    "solidity-coverage": "^0.8.16",
+    "viem": "^2.33.2"
   },
   "dependencies": {
     "@nomicfoundation/hardhat-toolbox-viem": "^4.1.0",

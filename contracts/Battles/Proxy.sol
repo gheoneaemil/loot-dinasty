@@ -4,12 +4,12 @@ import "./Storage.sol";
 
 contract LootDynastyBattles is Storage {
     constructor(
-        address _validatorsAddress,
+        address _validatorsManager,
         address _userKeysManager,
         address _lootDynastyManager,
         address _methods
     ) 
-        Storage(_validatorsAddress, _userKeysManager, _lootDynastyManager, _methods) 
+        Storage(_validatorsManager, _userKeysManager, _lootDynastyManager, _methods) 
     {}
 
     function batchValidateBattleOpens(

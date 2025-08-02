@@ -4,12 +4,12 @@ import "./Storage.sol";
 
 contract LootDynastyBattlesMethods is Storage {
     constructor(
-        address _validatorsAddress,
+        address _validatorsManager,
         address _userKeysManager,
         address _lootDynastyManager,
         address _methods
     ) 
-        Storage(_validatorsAddress, _userKeysManager, _lootDynastyManager, _methods) 
+        Storage(_validatorsManager, _userKeysManager, _lootDynastyManager, _methods) 
     {}
 
     modifier validator {
@@ -46,13 +46,14 @@ contract LootDynastyBattlesMethods is Storage {
         string[] calldata purchaseReferences
     ) private {
         for (uint256 i; i < packIds.length; ) {
-            uint256 rand = IUserKeys(userKeysManager).getRandomness(userIds[i], blocksHash[i]);
-            (uint256[] memory ids, uint256[] memory chances, uint256[] memory prices) = 
-                ILootDynasty(lootDynastyManager).getPackArrays(packIds[i]);
-            uint256 chanceValue = rand % chances[chances.length-1];
-            uint256 itemIdWon = ILootDynasty(lootDynastyManager).getItemWon(packIds[i], chanceValue);
             uint256 userId = userIds[i];
-            battles[id].packId = packIds[i];
+            uint256 packId = packIds[i];
+            uint256 rand = IUserKeys(userKeysManager).getRandomness(userId, blocksHash[i]);
+            (uint256[] memory ids, uint256[] memory chances, uint256[] memory prices) = 
+                ILootDynasty(lootDynastyManager).getPackArrays(packId);
+            uint256 chanceValue = rand % chances[chances.length-1];
+            uint256 itemIdWon = ILootDynasty(lootDynastyManager).getItemWon(packId, chanceValue);
+            battles[id].packId = packId;
             battles[id].userId = userId;
             battles[id].randomness = rand;
             battles[id].prize = prices[itemIdWon];

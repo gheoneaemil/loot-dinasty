@@ -27,14 +27,14 @@ contract Storage is Ownable {
     address public methods;
 
     constructor(
-        address _validatorsAddress,
+        address _validatorsManager,
         address _userKeysManager,
         address _lootDynastyManager,
         address _methods
     ) 
         Ownable(msg.sender) 
     {
-        validatorsManager = _validatorsAddress;
+        validatorsManager = _validatorsManager;
         userKeysManager = _userKeysManager;
         lootDynastyManager = _lootDynastyManager;
         methods = _methods;
