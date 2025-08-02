@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 import "./Storage.sol";
 
-contract LootDynastyOpenings is Storage {
+contract LootDynastyVirtualOpenings is Storage {
     constructor(
         address _validatorsManager,
         address _userKeysManager,

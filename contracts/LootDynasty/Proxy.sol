@@ -16,9 +16,7 @@ contract LootDynasty is Storage {
     )
         external
     {
-        (bool success, ) = methods.delegatecall(
-            abi.encodeWithSignature("setConfig(address,address)", msg.data)
-        );
+        (bool success, ) = methods.delegatecall(msg.data);
         require(success);
     }
 
@@ -28,9 +26,7 @@ contract LootDynasty is Storage {
     ) 
         external 
     {
-        (bool success, ) = methods.delegatecall(
-            abi.encodeWithSignature("setPack(uint256,(string,uint256[],uint256[],uint256[],uint256))", msg.data)
-        );
+        (bool success, ) = methods.delegatecall(msg.data);
         require(success);
     }
 

@@ -16,9 +16,7 @@ contract Validators is Storage {
     )
         external
     {
-        (bool success, ) = methods.delegatecall(
-            abi.encodeWithSignature("setConfig(address,address)", msg.data)
-        );
+        (bool success, ) = methods.delegatecall(msg.data);
         require(success);
     }
 
@@ -27,9 +25,7 @@ contract Validators is Storage {
     ) 
         external 
     {
-        (bool success, ) = methods.delegatecall(
-            abi.encodeWithSignature("setWhitelist(address[])", msg.data)
-        );
+        (bool success, ) = methods.delegatecall(msg.data);
         require(success);
     }
 

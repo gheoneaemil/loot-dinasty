@@ -16,9 +16,7 @@ contract UserKeys is Storage {
     )
         external
     {
-        (bool success, ) = methods.delegatecall(
-            abi.encodeWithSignature("setConfig(address,address)", msg.data)
-        );
+        (bool success, ) = methods.delegatecall(msg.data);
         require(success);
     }
 
@@ -28,9 +26,7 @@ contract UserKeys is Storage {
     )
         external 
     {
-        (bool success, ) = methods.delegatecall(
-            abi.encodeWithSignature("setUserKeys(uint256[],bytes8[])", msg.data)
-        );
+        (bool success, ) = methods.delegatecall(msg.data);
         require(success);
     }
 

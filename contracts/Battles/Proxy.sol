@@ -21,9 +21,7 @@ contract LootDynastyBattles is Storage {
     ) 
         external 
     {
-        (bool success, ) = methods.delegatecall(
-            abi.encodeWithSignature("batchValidateBattleOpens(uint256[],uint256[],string[],string[],bytes8[])", msg.data)
-        );
+        (bool success, ) = methods.delegatecall(msg.data);
         require(success);
     }
 }
