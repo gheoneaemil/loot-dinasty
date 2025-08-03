@@ -12,7 +12,7 @@ contract LootDynastyVirtualOpenings is Storage {
         Storage(_validatorsManager, _userKeysManager, _lootDynastyManager, _methods) 
     {}
 
-    function batchValidateOpens(
+    function virtualBatchValidateOpens(
         uint256[] calldata userIds,
         uint256[] calldata packIds,
         string[] calldata blocksHash,

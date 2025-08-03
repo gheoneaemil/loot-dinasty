@@ -19,7 +19,7 @@ contract LootDynastyVirtualBattlesMethods is Storage {
         _;
     }
 
-    function batchValidateBattleOpens(
+    function virtualBatchValidateBattleOpens(
         uint256[] calldata userIds,
         uint256[] calldata packIds,
         string[] calldata blocksHash,
@@ -60,7 +60,7 @@ contract LootDynastyVirtualBattlesMethods is Storage {
             battles[id].battlemode = battlemodes[i];
             battles[id].purchaseReference = purchaseReferences[i];
             battles[id].itemIdWon = ids[itemIdWon];
-            emit NewBattle(id, battles[id++]);
+            emit NewVirtualBattle(id, battles[id++]);
             unchecked { ++i; }
         }
     }

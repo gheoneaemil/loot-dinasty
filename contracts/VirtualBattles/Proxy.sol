@@ -12,7 +12,7 @@ contract LootDynastyVirtualBattles is Storage {
         Storage(_validatorsManager, _userKeysManager, _lootDynastyManager, _methods) 
     {}
 
-    function batchValidateBattleOpens(
+    function virtualBatchValidateBattleOpens(
         uint256[] calldata userIds,
         uint256[] calldata packIds,
         string[] calldata blocksHash,

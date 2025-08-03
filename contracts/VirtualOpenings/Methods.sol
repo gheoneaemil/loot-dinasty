@@ -19,7 +19,7 @@ contract LootDynastyVirtualOpeningsMethods is Storage {
         _;
     }
 
-    function batchValidateOpens(
+    function virtualBatchValidateOpens(
         uint256[] calldata userIds,
         uint256[] calldata packIds,
         string[] calldata blocksHash,
