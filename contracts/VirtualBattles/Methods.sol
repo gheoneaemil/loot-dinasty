@@ -60,7 +60,7 @@ contract LootDynastyVirtualBattlesMethods is Storage {
             battles[id].battlemode = battlemodes[i];
             battles[id].purchaseReference = purchaseReferences[i];
             battles[id].itemIdWon = ids[itemIdWon];
-            emit NewVirtualBattle(id, battles[id++]);
+            emit NewVirtualBattle(id, battles[id++], blocksHash[i]);
             unchecked { ++i; }
         }
     }
