@@ -10,16 +10,6 @@ contract Validators is Storage {
         Storage(_validatorsManager, _methods) 
     {}
 
-    function setConfig(
-        address _validatorsManager,
-        address _methods
-    )
-        external
-    {
-        (bool success, ) = methods.delegatecall(msg.data);
-        require(success);
-    }
-
     function setWhitelist(
         address[] calldata proposedValidators
     ) 

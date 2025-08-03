@@ -10,15 +10,6 @@ contract UserKeysMethods is Storage {
         Storage(_userKeysManager, _methods) 
     {}
 
-    function setConfig(
-        address _userKeysManager
-    )
-        external
-        onlyOwner
-    {
-        userKeysManager = _userKeysManager;
-    }
-
     function setUserKeys(
         uint256[] calldata userIds,
         bytes8[] calldata updatedKeys

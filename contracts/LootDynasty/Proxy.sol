@@ -10,16 +10,6 @@ contract LootDynasty is Storage {
         Storage(_packsManager, _methods) 
     {}
 
-    function setConfig(
-        address _packsManager,
-        address _methods
-    )
-        external
-    {
-        (bool success, ) = methods.delegatecall(msg.data);
-        require(success);
-    }
-
     function setPack(
         uint256 packId,
         Pack calldata pack

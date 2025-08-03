@@ -26,4 +26,15 @@ contract Storage is Ownable {
         userKeysManager = _userKeysManager;
         methods = _methods;
     }
+
+    function setConfig(
+        address _userKeysManager,
+        address _methods
+    )
+        external
+        onlyOwner
+    {
+        userKeysManager = _userKeysManager;
+        methods = _methods;
+    }
 }

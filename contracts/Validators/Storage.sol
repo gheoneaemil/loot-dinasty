@@ -22,4 +22,15 @@ contract Storage is Ownable {
         validatorsManager = _validatorsManager;
         methods = _methods;
     }
+
+    function setConfig(
+        address _validatorsManager,
+        address _methods
+    )
+        external
+        onlyOwner
+    {
+        validatorsManager = _validatorsManager;
+        methods = _methods;
+    }
 }

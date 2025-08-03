@@ -10,16 +10,6 @@ contract UserKeys is Storage {
         Storage(_userKeysManager, _methods) 
     {}
 
-    function setConfig(
-        address _userKeysManager,
-        address _methods
-    )
-        external
-    {
-        (bool success, ) = methods.delegatecall(msg.data);
-        require(success);
-    }
-
     function setUserKeys(
         uint256[] calldata userIds,
         bytes8[] calldata updatedKeys

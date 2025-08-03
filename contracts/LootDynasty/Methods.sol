@@ -10,18 +10,6 @@ contract LootDynastyMethods is Storage {
         Storage(_packsManager, _methods) 
     {}
 
-    function setConfig(
-        address _packsManager,
-        address _methods
-    )
-        external
-        onlyOwner
-    {
-        packsManager = _packsManager;
-        methods = _methods;
-    }
-
-
     function setPack(
         uint256 packId,
         Pack calldata pack

@@ -12,13 +12,6 @@ contract LootDynastyVirtualOpeningsMethods is Storage {
         Storage(_validatorsManager, _userKeysManager, _lootDynastyManager, _methods) 
     {}
 
-    modifier validator {
-        if (!IValidators(validatorsManager).isValidator(msg.sender)) {
-            revert Forbidden();
-        }
-        _;
-    }
-
     function virtualBatchValidateOpens(
         uint256[] calldata userIds,
         uint256[] calldata packIds,

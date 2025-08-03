@@ -47,4 +47,15 @@ contract Storage is Ownable {
         packsManager = _packsManager;
         methods = _methods;
     }
+
+    function setConfig(
+        address _packsManager,
+        address _methods
+    )
+        external
+        onlyOwner
+    {
+        packsManager = _packsManager;
+        methods = _methods;
+    }
 }

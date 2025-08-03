@@ -39,4 +39,26 @@ contract Storage is Ownable {
         lootDynastyManager = _lootDynastyManager;
         methods = _methods;
     }
+
+    modifier validator {
+        if (!IValidators(validatorsManager).isValidator(msg.sender)) {
+            revert Forbidden();
+        }
+        _;
+    }
+
+    function setConfig(
+        address _validatorsManager,
+        address _userKeysManager,
+        address _lootDynastyManager,
+        address _methods
+    )
+        external
+        onlyOwner
+    {
+        validatorsManager = _validatorsManager;
+        userKeysManager = _userKeysManager;
+        lootDynastyManager = _lootDynastyManager;
+        methods = _methods;
+    }
 }
