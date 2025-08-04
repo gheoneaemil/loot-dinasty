@@ -9,8 +9,8 @@ error NoWonItemFound();
 error Forbidden();
 
 contract Storage is Ownable {
-    event NewVirtualBattle(uint256 indexed id, Battle battle, string blockHash);
-    struct Battle {
+    event NewVirtualBattle(uint256 indexed battleOpeningsIndexStart, uint256 indexed battleOpeningsIndexStop, string[] blocksHash);
+    struct BattleOpening {
         uint256 userId;
         uint256 packId;
         uint256 randomness;
@@ -21,7 +21,7 @@ contract Storage is Ownable {
     }
 
     uint256 public id;
-    mapping(uint256 => Battle) public battles;
+    mapping(uint256 => BattleOpening) public battleOpenings;
     address public validatorsManager;
     address public userKeysManager;
     address public lootDynastyManager;

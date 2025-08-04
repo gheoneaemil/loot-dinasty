@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 import "./Storage.sol";
 
-contract LootDynastyBattlesMethods is Storage {
+contract LootDynastybattleOpeningsMethods is Storage {
     constructor(
         address _validatorsManager,
         address _userKeysManager,
@@ -12,7 +12,7 @@ contract LootDynastyBattlesMethods is Storage {
         Storage(_validatorsManager, _userKeysManager, _lootDynastyManager, _methods) 
     {}
 
-    function batchValidateBattleOpens(
+    function validateBattleOpen(
         uint256[] calldata userIds,
         uint256[] calldata packIds,
         string[] calldata blocksHash,
@@ -22,7 +22,7 @@ contract LootDynastyBattlesMethods is Storage {
         validator 
         external 
     {
-        _handleBattleOpenings(
+        _handleBattleOpening(
             userIds,
             packIds,
             battlemodes,
@@ -31,13 +31,14 @@ contract LootDynastyBattlesMethods is Storage {
         );
     }
 
-    function _handleBattleOpenings(
+    function _handleBattleOpening(
         uint256[] calldata userIds,
         uint256[] calldata packIds,
         bytes8[] calldata battlemodes,
         string[] calldata blocksHash,
         string[] calldata purchaseReferences
     ) private {
+        uint256 idStart = id;
         for (uint256 i; i < packIds.length; ) {
             uint256 userId = userIds[i];
             uint256 packId = packIds[i];
@@ -46,15 +47,15 @@ contract LootDynastyBattlesMethods is Storage {
                 ILootDynasty(lootDynastyManager).getPackArrays(packId);
             uint256 chanceValue = rand % chances[chances.length-1];
             uint256 itemIdWon = ILootDynasty(lootDynastyManager).getItemWon(packId, chanceValue);
-            battles[id].packId = packId;
-            battles[id].userId = userId;
-            battles[id].randomness = rand;
-            battles[id].prize = prices[itemIdWon];
-            battles[id].battlemode = battlemodes[i];
-            battles[id].purchaseReference = purchaseReferences[i];
-            battles[id].itemIdWon = ids[itemIdWon];
-            emit NewBattle(id, battles[id++], blocksHash[i]);
-            unchecked { ++i; }
+            battleOpenings[id].packId = packId;
+            battleOpenings[id].userId = userId;
+            battleOpenings[id].randomness = rand;
+            battleOpenings[id].prize = prices[itemIdWon];
+            battleOpenings[id].battlemode = battlemodes[i];
+            battleOpenings[id].purchaseReference = purchaseReferences[i];
+            battleOpenings[id].itemIdWon = ids[itemIdWon];
+            unchecked { ++i; ++id; }
         }
+        emit NewBattle(idStart, id, blocksHash);
     }
 }

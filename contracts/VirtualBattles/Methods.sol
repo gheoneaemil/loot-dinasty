@@ -38,6 +38,7 @@ contract LootDynastyVirtualBattlesMethods is Storage {
         string[] calldata blocksHash,
         string[] calldata purchaseReferences
     ) private {
+        uint256 idStart = id;
         for (uint256 i; i < packIds.length; ) {
             uint256 userId = userIds[i];
             uint256 packId = packIds[i];
@@ -46,15 +47,15 @@ contract LootDynastyVirtualBattlesMethods is Storage {
                 ILootDynasty(lootDynastyManager).getPackArrays(packId);
             uint256 chanceValue = rand % chances[chances.length-1];
             uint256 itemIdWon = ILootDynasty(lootDynastyManager).getItemWon(packId, chanceValue);
-            battles[id].packId = packId;
-            battles[id].userId = userId;
-            battles[id].randomness = rand;
-            battles[id].prize = prices[itemIdWon];
-            battles[id].battlemode = battlemodes[i];
-            battles[id].purchaseReference = purchaseReferences[i];
-            battles[id].itemIdWon = ids[itemIdWon];
-            emit NewVirtualBattle(id, battles[id++], blocksHash[i]);
-            unchecked { ++i; }
+            battleOpenings[id].packId = packId;
+            battleOpenings[id].userId = userId;
+            battleOpenings[id].randomness = rand;
+            battleOpenings[id].prize = prices[itemIdWon];
+            battleOpenings[id].battlemode = battlemodes[i];
+            battleOpenings[id].purchaseReference = purchaseReferences[i];
+            battleOpenings[id].itemIdWon = ids[itemIdWon];
+            unchecked { ++i; ++id; }
         }
+        emit NewVirtualBattle(idStart, id, blocksHash);
     }
 }
