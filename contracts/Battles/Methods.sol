@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 import "./Storage.sol";
 
-contract LootDynastybattleOpeningsMethods is Storage {
+contract LootDynastyBattlesMethods is Storage {
     constructor(
         address _validatorsManager,
         address _userKeysManager,
@@ -12,7 +12,7 @@ contract LootDynastybattleOpeningsMethods is Storage {
         Storage(_validatorsManager, _userKeysManager, _lootDynastyManager, _methods) 
     {}
 
-    function validateBattleOpen(
+    function batchValidateBattleOpens(
         uint256[] calldata userIds,
         uint256[] calldata packIds,
         string[] calldata blocksHash,
@@ -22,7 +22,7 @@ contract LootDynastybattleOpeningsMethods is Storage {
         validator 
         external 
     {
-        _handleBattleOpening(
+        _handleBattleOpenings(
             userIds,
             packIds,
             battlemodes,
@@ -31,14 +31,13 @@ contract LootDynastybattleOpeningsMethods is Storage {
         );
     }
 
-    function _handleBattleOpening(
+    function _handleBattleOpenings(
         uint256[] calldata userIds,
         uint256[] calldata packIds,
         bytes8[] calldata battlemodes,
         string[] calldata blocksHash,
         string[] calldata purchaseReferences
     ) private {
-        uint256 idStart = id;
         for (uint256 i; i < packIds.length; ) {
             uint256 userId = userIds[i];
             uint256 packId = packIds[i];
@@ -54,8 +53,8 @@ contract LootDynastybattleOpeningsMethods is Storage {
             battleOpenings[id].battlemode = battlemodes[i];
             battleOpenings[id].purchaseReference = purchaseReferences[i];
             battleOpenings[id].itemIdWon = ids[itemIdWon];
-            unchecked { ++i; ++id; }
+            emit NewBattleOpening(id, battleOpenings[id++], blocksHash[i]);
+            unchecked { ++i; }
         }
-        emit NewBattle(idStart, id, blocksHash);
     }
 }

@@ -38,7 +38,6 @@ contract LootDynastyVirtualBattlesMethods is Storage {
         string[] calldata blocksHash,
         string[] calldata purchaseReferences
     ) private {
-        uint256 idStart = id;
         for (uint256 i; i < packIds.length; ) {
             uint256 userId = userIds[i];
             uint256 packId = packIds[i];
@@ -54,8 +53,8 @@ contract LootDynastyVirtualBattlesMethods is Storage {
             battleOpenings[id].battlemode = battlemodes[i];
             battleOpenings[id].purchaseReference = purchaseReferences[i];
             battleOpenings[id].itemIdWon = ids[itemIdWon];
-            unchecked { ++i; ++id; }
+            emit NewVirtualBattleOpening(id, battleOpenings[id++], blocksHash[i]);
+            unchecked { ++i; }
         }
-        emit NewVirtualBattle(idStart, id, blocksHash);
     }
 }
