@@ -9,7 +9,7 @@ error NoWonItemFound();
 error Forbidden();
 
 contract Storage is Ownable {
-    event NewVirtualBattleOpening(uint256 indexed id, BattleOpening battle, string blockHash);
+    event NewVirtualBattleOpening(uint256 indexed id, BattleOpening battleOpening, string blockHash);
     struct BattleOpening {
         uint256 userId;
         uint256 packId;
