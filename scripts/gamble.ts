@@ -1,7 +1,7 @@
-import hre from "hardhat";
 import { address0x0 } from "../utils/constants";
-import { getContract, parseEventLogs } from "viem";
+import { createWalletClient, getContract, parseEventLogs, webSocket } from "viem";
 import Database from "better-sqlite3";
+import { privateKeyToAccount } from "viem/accounts";
 
 const db = new Database("database.sqlite");
 
@@ -12,20 +12,19 @@ db.exec(`
     );
 `);
 
-const initializeContract = async () => {
-    const [anotherAccount, gnosisAccount] = await hre.viem.getWalletClients();
-    const gnosisAddresses = await gnosisAccount.getAddresses();
-
-    const LootKingdom = await hre.viem.deployContract("LootKingdom", [gnosisAddresses[0]]);
-    const publicClient = await hre.viem.getPublicClient();
-
-    return {
-        anotherAccount, gnosisAccount, LootKingdom, publicClient
-    };
-}
 
 const run = async () => {
-    const { LootKingdom, anotherAccount, publicClient } = await initializeContract();
+    const account = privateKeyToAccount(`0x${process.env.PRIVATE_KEY}`);
+    return createWalletClient({
+      account,
+      transport: webSocket(String(process.env.RPC_URL)), 
+      chain: { ...sepolia, id: CHAIN_ID }
+    });
+
+
+    const LootKingdom = ;
+    const anotherAccount = ;
+    const publicClient = ;
     const packPrice = BigInt(500);
     const prizes = [
         BigInt(0), BigInt(50), BigInt(110), 
